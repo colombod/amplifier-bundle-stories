@@ -1,0 +1,51 @@
+# Private settings
+.env
+*.local
+*.local.*
+*.user
+
+# OS files
+**/.DS_Store
+**/Thumbs.db
+
+# Python
+__pycache__
+*.py[cod]
+*$py.class
+*.so
+.Python
+.cache
+*.egg
+*.egg-info
+.pytest_cache
+.coverage
+htmlcov/
+.tox/
+.ruff_cache
+.venv
+venv
+env
+
+# Build
+dist/
+build/
+output/
+
+# Logs
+logs/
+*.log
+
+# Working directories (generated content)
+workspace/pptx/html-slides/
+workspace/pptx/assets/
+workspace/pptx/output/
+workspace/pptx/thumbnails/
+workspace/xlsx/output/
+workspace/docx/output/
+workspace/pdf/output/
+
+# Conversion scripts (generated)
+workspace/**/*.js
+workspace/**/*.py
+!workspace/**/templates/*.py
+!workspace/**/templates/*.js

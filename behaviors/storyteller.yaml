@@ -1,0 +1,30 @@
+bundle:
+  name: stories-behavior
+  version: 1.0.0
+  description: Story creation agents and content generation capabilities
+
+# All 11 specialist agents - using include pattern for proper prefixing
+agents:
+  include:
+    - stories:storyteller
+    - stories:story-researcher
+    - stories:content-strategist
+    - stories:technical-writer
+    - stories:marketing-writer
+    - stories:executive-briefer
+    - stories:community-manager
+    - stories:release-manager
+    - stories:case-study-writer
+    - stories:data-analyst
+    - stories:content-adapter
+
+# Recipes for automated workflows
+recipes:
+  session-to-case-study:
+    path: stories:recipes/session-to-case-study.yaml
+  git-tag-to-changelog:
+    path: stories:recipes/git-tag-to-changelog.yaml
+  weekly-digest:
+    path: stories:recipes/weekly-digest.yaml
+  blog-post-generator:
+    path: stories:recipes/blog-post-generator.yaml

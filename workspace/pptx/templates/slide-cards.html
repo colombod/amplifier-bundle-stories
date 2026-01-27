@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+body {
+  width: 720pt;
+  height: 405pt;
+  margin: 0;
+  padding: 60pt 80pt;
+  font-family: Arial, sans-serif;
+  background: #000000;
+  color: #FFFFFF;
+}
+
+h2 {
+  font-size: 48pt;
+  font-weight: 600;
+  color: #FFFFFF;
+  line-height: 1.2;
+  letter-spacing: -1px;
+  margin: 0 0 40pt 0;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 40pt;
+}
+
+.card {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 16px;
+  padding: 32pt;
+}
+
+.card-title {
+  font-size: 20pt;
+  font-weight: 600;
+  color: #0A84FF;
+  margin-bottom: 12pt;
+}
+
+.card-text {
+  font-size: 16pt;
+  color: rgba(255,255,255,0.7);
+  line-height: 1.5;
+}
+</style>
+</head>
+<body>
+  <h2>Feature Overview</h2>
+  <div class="cards">
+    <div class="card">
+      <p class="card-title">Feature One</p>
+      <p class="card-text">Description of the first feature and its benefits</p>
+    </div>
+    <div class="card">
+      <p class="card-title">Feature Two</p>
+      <p class="card-text">Description of the second feature and its benefits</p>
+    </div>
+    <div class="card">
+      <p class="card-title">Feature Three</p>
+      <p class="card-text">Description of the third feature and its benefits</p>
+    </div>
+  </div>
+</body>
+</html>

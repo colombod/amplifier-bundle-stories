@@ -1,0 +1,1029 @@
+name: "git-tag-to-changelog"
+description: "Generate complete release documentation from git tags including changelog, release notes, and migration guides"
+version: "1.0.0"
+author: "Amplifier Recipes Collection"
+tags: ["release", "changelog", "documentation", "git", "automation"]
+
+# Git Tag to Changelog Recipe
+# ===========================
+#
+# Automatically generates comprehensive release documentation when a git tag is created.
+#
+# WHAT IT GENERATES:
+# ------------------
+# - CHANGELOG.md entry (Keep a Changelog format)
+# - GitHub release notes (Markdown)
+# - Migration guide (Markdown, if breaking changes detected)
+# - Blog post announcement (Markdown)
+# - Social media content (Twitter/LinkedIn ready)
+# - Pull request with all documentation for review
+#
+# WORKFLOW:
+# ---------
+# 1. Tag Detection: Verify tag exists, find previous tag, extract versions
+# 2. Git History Analysis: Parse commits, group by type, identify breaking changes
+# 3. Release Planning: Determine release type, assess documentation needs
+# 4. Documentation Generation: Create all release artifacts
+# 5. Finalization: Create branch, commit files, open PR
+#
+# USAGE:
+# ------
+# In a session:
+#   "run git-tag-to-changelog recipe with tag_name=v2.0.0"
+#
+# From CLI:
+#   amplifier tool invoke recipes operation=execute \
+#     recipe_path=git-tag-to-changelog.yaml \
+#     context='{"tag_name": "v2.0.0"}'
+#
+# Custom repo:
+#   amplifier tool invoke recipes operation=execute \
+#     recipe_path=git-tag-to-changelog.yaml \
+#     context='{"tag_name": "v2.0.0", "repo_path": "/path/to/repo"}'
+#
+# REQUIREMENTS:
+# -------------
+# - git CLI
+# - gh CLI (for PR creation)
+# - Repository must use semantic versioning (vX.Y.Z)
+# - Repository should follow conventional commits for best results
+#
+# AGENTS USED:
+# ------------
+# - zen-architect: Strategic analysis and planning
+# - explorer: Deep code analysis for breaking changes
+# - integration-specialist: Documentation generation and formatting
+
+context:
+  # Required: Git tag to generate documentation for (e.g., "v2.0.0")
+  tag_name: ""
+  
+  # Optional: Path to git repository (defaults to current directory)
+  repo_path: "."
+  
+  # Optional: Output directory for generated files
+  output_dir: "./workspace/release-docs"
+  
+  # Optional: Branch name for PR (defaults to release-{tag_name}-docs)
+  branch_name: ""
+  
+  # Optional: Include social media content
+  include_social_media: true
+  
+  # Optional: Include blog post
+  include_blog_post: true
+  
+  # Optional: Skip PR creation (just generate files)
+  skip_pr: false
+
+steps:
+  # ==========================================================================
+  # Step 1: Detect and validate git tag
+  # ==========================================================================
+  - id: "detect-tag"
+    type: "bash"
+    command: |
+      set -euo pipefail
+      
+      cd "{{repo_path}}"
+      
+      tag_name="{{tag_name}}"
+      
+      # Validate tag_name was provided
+      if [ -z "$tag_name" ]; then
+        echo '{"error": "tag_name is required", "success": false}'
+        exit 1
+      fi
+      
+      # Verify tag exists
+      if ! git tag -l "$tag_name" | grep -q "^$tag_name$"; then
+        echo "{\"error\": \"Tag $tag_name does not exist\", \"success\": false}"
+        exit 1
+      fi
+      
+      # Get tag commit SHA
+      tag_sha=$(git rev-list -n 1 "$tag_name")
+      
+      # Find previous tag (most recent tag before this one)
+      previous_tag=$(git describe --abbrev=0 --tags "${tag_name}^" 2>/dev/null || echo "")
+      
+      if [ -z "$previous_tag" ]; then
+        # No previous tag, use first commit
+        previous_sha=$(git rev-list --max-parents=0 HEAD)
+        previous_tag="(initial)"
+      else
+        previous_sha=$(git rev-list -n 1 "$previous_tag")
+      fi
+      
+      # Extract version numbers (strip 'v' prefix if present)
+      current_version=$(echo "$tag_name" | sed 's/^v//')
+      previous_version=$(echo "$previous_tag" | sed 's/^v//')
+      
+      # Parse semver components
+      current_major=$(echo "$current_version" | cut -d. -f1)
+      current_minor=$(echo "$current_version" | cut -d. -f2)
+      current_patch=$(echo "$current_version" | cut -d. -f3)
+      
+      if [ "$previous_tag" != "(initial)" ]; then
+        previous_major=$(echo "$previous_version" | cut -d. -f1)
+        previous_minor=$(echo "$previous_version" | cut -d. -f2)
+        previous_patch=$(echo "$previous_version" | cut -d. -f3)
+      else
+        previous_major=0
+        previous_minor=0
+        previous_patch=0
+      fi
+      
+      # Determine release type
+      if [ "$current_major" -gt "$previous_major" ]; then
+        release_type="major"
+      elif [ "$current_minor" -gt "$previous_minor" ]; then
+        release_type="minor"
+      else
+        release_type="patch"
+      fi
+      
+      # Get commit range
+      commit_range="${previous_sha}..${tag_sha}"
+      
+      # Get repository info
+      repo_url=$(git remote get-url origin 2>/dev/null || echo "")
+      repo_url=$(echo "$repo_url" | sed 's/\.git$//' | sed 's|git@github.com:|https://github.com/|')
+      
+      echo "{
+        \"success\": true,
+        \"tag_name\": \"$tag_name\",
+        \"tag_sha\": \"$tag_sha\",
+        \"previous_tag\": \"$previous_tag\",
+        \"previous_sha\": \"$previous_sha\",
+        \"current_version\": \"$current_version\",
+        \"previous_version\": \"$previous_version\",
+        \"release_type\": \"$release_type\",
+        \"commit_range\": \"$commit_range\",
+        \"repo_url\": \"$repo_url\",
+        \"error\": null
+      }"
+    output: "tag_info"
+    parse_json: true
+    timeout: 60
+    on_error: "fail"
+
+  # ==========================================================================
+  # Step 2: Extract commit history between tags
+  # ==========================================================================
+  - id: "extract-commits"
+    type: "bash"
+    command: |
+      set -euo pipefail
+      
+      cd "{{repo_path}}"
+      
+      # Get commits with full details
+      git log {{tag_info.commit_range}} \
+        --pretty=format:'{"sha": "%H", "short_sha": "%h", "author": "%an", "email": "%ae", "date": "%aI", "subject": "%s", "body": "%b"},' \
+        --no-merges > commits.json.tmp || echo "" > commits.json.tmp
+      
+      # Wrap in array and remove trailing comma
+      echo "[" > commits.json
+      cat commits.json.tmp >> commits.json
+      echo '{"end": true}]' >> commits.json
+      
+      # Clean up JSON (remove trailing comma before end marker)
+      jq '[.[] | select(.end != true)]' commits.json > commits-clean.json
+      
+      # Count commits
+      commit_count=$(jq 'length' commits-clean.json)
+      
+      # Get unique contributors
+      contributors=$(jq -r '[.[].author] | unique | join(", ")' commits-clean.json)
+      contributor_count=$(jq '[.[].author] | unique | length' commits-clean.json)
+      
+      # Get date range
+      first_commit_date=$(jq -r '.[0].date // ""' commits-clean.json)
+      last_commit_date=$(jq -r '.[-1].date // ""' commits-clean.json)
+      
+      # Get files changed stats
+      files_changed=$(git diff --shortstat {{tag_info.commit_range}} | sed 's/^[[:space:]]*//')
+      
+      jq -n \
+        --argjson commits "$(cat commits-clean.json)" \
+        --arg count "$commit_count" \
+        --arg contributors "$contributors" \
+        --arg contributor_count "$contributor_count" \
+        --arg first_date "$first_commit_date" \
+        --arg last_date "$last_commit_date" \
+        --arg files_changed "$files_changed" \
+        '{
+          "commit_count": ($count | tonumber),
+          "commits": $commits,
+          "contributors": $contributors,
+          "contributor_count": ($contributor_count | tonumber),
+          "first_commit_date": $first_date,
+          "last_commit_date": $last_date,
+          "files_changed": $files_changed
+        }'
+      
+      rm -f commits.json.tmp commits.json commits-clean.json
+    output: "commit_history"
+    parse_json: true
+    timeout: 300
+    on_error: "fail"
+
+  # ==========================================================================
+  # Step 3: Analyze commits and categorize changes
+  # ==========================================================================
+  - id: "analyze-commits"
+    agent: "foundation:zen-architect"
+    mode: "ANALYZE"
+    prompt: |
+      Analyze the git commit history for release {{tag_info.tag_name}}.
+      
+      ## Commit Data
+      
+      Release: {{tag_info.previous_tag}} → {{tag_info.tag_name}}
+      Release Type: {{tag_info.release_type}}
+      Commits: {{commit_history.commit_count}}
+      Contributors: {{commit_history.contributor_count}}
+      Date Range: {{commit_history.first_commit_date}} to {{commit_history.last_commit_date}}
+      
+      Commits:
+      {{commit_history.commits}}
+      
+      ## Analysis Tasks
+      
+      For each commit, analyze the subject and body to:
+      
+      1. **Categorize by type** (conventional commits style):
+         - feat: New features
+         - fix: Bug fixes
+         - docs: Documentation changes
+         - style: Code style changes (formatting, etc.)
+         - refactor: Code refactoring
+         - perf: Performance improvements
+         - test: Test additions/changes
+         - build: Build system changes
+         - ci: CI/CD changes
+         - chore: Maintenance tasks
+         - other: Uncategorized
+      
+      2. **Identify breaking changes**:
+         - Look for "BREAKING CHANGE:" in commit body
+         - Look for "!" in commit type (e.g., "feat!:")
+         - Analyze commit message for breaking change indicators
+         - Note the nature of the breaking change
+      
+      3. **Extract metadata**:
+         - PR numbers (from commit messages like "#123" or "PR #123")
+         - Issue references (like "fixes #456")
+         - Scope (if specified, e.g., "feat(api):")
+      
+      4. **Assess impact**:
+         - critical: Security fixes, major breaking changes
+         - high: Important features, significant bug fixes
+         - medium: Regular features, minor fixes
+         - low: Documentation, code style, tests
+      
+      ## Output Format
+      
+      Return JSON:
+      ```json
+      {
+        "by_type": {
+          "feat": [{"sha": "...", "subject": "...", "scope": "...", "pr": "...", "impact": "..."}],
+          "fix": [...],
+          "docs": [...],
+          ...
+        },
+        "breaking_changes": [
+          {
+            "sha": "...",
+            "subject": "...",
+            "description": "What breaks and why",
+            "migration_hint": "How to adapt"
+          }
+        ],
+        "statistics": {
+          "total_commits": N,
+          "by_type_count": {"feat": N, "fix": N, ...},
+          "breaking_count": N,
+          "has_breaking_changes": true|false
+        },
+        "highlights": [
+          "Most important change 1",
+          "Most important change 2",
+          "Most important change 3"
+        ],
+        "themes": ["Theme 1", "Theme 2"]
+      }
+      ```
+    output: "commit_analysis"
+    parse_json: true
+    timeout: 600
+
+  # ==========================================================================
+  # Step 4: Deep dive on breaking changes (if any)
+  # ==========================================================================
+  - id: "analyze-breaking-changes"
+    condition: "{{commit_analysis.statistics.has_breaking_changes}} == true"
+    agent: "foundation:explorer"
+    prompt: |
+      Deep analysis of breaking changes for {{tag_info.tag_name}}.
+      
+      ## Breaking Changes Detected
+      
+      {{commit_analysis.breaking_changes}}
+      
+      ## Tasks
+      
+      For each breaking change:
+      
+      1. **Examine the actual code changes**:
+         ```bash
+         cd {{repo_path}}
+         git show <SHA> --stat
+         git show <SHA>
+         ```
+      
+      2. **Understand the impact**:
+         - What APIs changed?
+         - What behavior changed?
+         - Who will be affected?
+         - What's the migration path?
+      
+      3. **Find related files**:
+         - Are there tests that show old vs new behavior?
+         - Is there existing documentation that needs updating?
+         - Are there examples that need changes?
+      
+      4. **Assess migration complexity**:
+         - Simple (rename, parameter change)
+         - Moderate (API restructure, new patterns)
+         - Complex (major architectural change)
+      
+      ## Output Format
+      
+      Return JSON:
+      ```json
+      {
+        "breaking_changes_detailed": [
+          {
+            "sha": "...",
+            "title": "...",
+            "description": "What changed and why",
+            "impact": "Who is affected",
+            "migration_steps": [
+              "Step 1: ...",
+              "Step 2: ..."
+            ],
+            "code_examples": {
+              "before": "// Old code example",
+              "after": "// New code example"
+            },
+            "complexity": "simple|moderate|complex",
+            "files_affected": ["file1.py", "file2.py"]
+          }
+        ],
+        "migration_guide_needed": true|false,
+        "estimated_migration_time": "X hours/days"
+      }
+      ```
+    output: "breaking_changes_detail"
+    parse_json: true
+    timeout: 600
+    on_error: "continue"
+
+  # ==========================================================================
+  # Step 5: Generate CHANGELOG.md entry
+  # ==========================================================================
+  - id: "generate-changelog"
+    agent: "foundation:integration-specialist"
+    prompt: |
+      Generate a CHANGELOG.md entry following Keep a Changelog format.
+      
+      ## Release Information
+      
+      Version: {{tag_info.tag_name}}
+      Previous: {{tag_info.previous_tag}}
+      Release Type: {{tag_info.release_type}}
+      Date: {{commit_history.last_commit_date}}
+      Repository: {{tag_info.repo_url}}
+      
+      ## Commit Analysis
+      
+      {{commit_analysis}}
+      
+      {% if commit_analysis.statistics.has_breaking_changes %}
+      ## Breaking Changes Detail
+      
+      {{breaking_changes_detail}}
+      {% endif %}
+      
+      ## Format Requirements
+      
+      Follow Keep a Changelog format (https://keepachangelog.com/):
+      
+      ```markdown
+      ## [{{tag_info.current_version}}] - YYYY-MM-DD
+      
+      ### Added
+      - New feature 1 ([#PR](link))
+      - New feature 2
+      
+      ### Changed
+      - Change 1
+      - ⚠️ **BREAKING**: Breaking change with clear explanation
+      
+      ### Deprecated
+      - Deprecated feature 1
+      
+      ### Removed
+      - Removed feature 1
+      
+      ### Fixed
+      - Bug fix 1 ([#PR](link))
+      - Bug fix 2
+      
+      ### Security
+      - Security fix 1
+      ```
+      
+      ## Guidelines
+      
+      1. **Group by category**: Added, Changed, Deprecated, Removed, Fixed, Security
+      2. **Highlight breaking changes** with ⚠️ **BREAKING** prefix
+      3. **Include PR/issue links** where available (from commit analysis)
+      4. **Be user-focused**: Describe impact, not implementation
+      5. **Be concise**: One line per change when possible
+      6. **Prioritize**: Most important changes first in each category
+      7. **Skip empty categories**: Don't include sections with no changes
+      
+      ## Output
+      
+      Return ONLY the changelog entry as plain markdown text.
+      Do not include JSON wrapping.
+      Start with ## [version] - date
+    output: "changelog_entry"
+    timeout: 300
+
+  # ==========================================================================
+  # Step 6: Generate GitHub release notes
+  # ==========================================================================
+  - id: "generate-release-notes"
+    agent: "foundation:zen-architect"
+    mode: "ARCHITECT"
+    prompt: |
+      Generate GitHub release notes for {{tag_info.tag_name}}.
+      
+      ## Release Information
+      
+      Version: {{tag_info.tag_name}}
+      Release Type: {{tag_info.release_type}}
+      Commits: {{commit_history.commit_count}}
+      Contributors: {{commit_history.contributor_count}}
+      
+      ## Analysis
+      
+      {{commit_analysis}}
+      
+      ## Target Audience
+      
+      GitHub release notes are read by:
+      - Developers evaluating whether to upgrade
+      - Users looking for new features
+      - Security teams checking for fixes
+      - Project managers tracking progress
+      
+      ## Format
+      
+      Create engaging, scannable release notes:
+      
+      ```markdown
+      # 🚀 Release {{tag_info.current_version}}
+      
+      [Opening paragraph: What's the big picture? Why this release matters?]
+      
+      ## ✨ Highlights
+      
+      - **Feature 1**: Brief description of impact
+      - **Feature 2**: What users can now do
+      - **Fix 1**: Problem that's now solved
+      
+      {% if breaking changes %}
+      ## ⚠️ Breaking Changes
+      
+      **Action Required**: [Clear summary of what users must do]
+      
+      - **Change 1**: What broke, why, and how to fix
+      - **Change 2**: Migration path
+      
+      [Link to full migration guide if complex]
+      {% endif %}
+      
+      ## 📦 What's Changed
+      
+      ### Added
+      - Feature descriptions (link to PR/commit)
+      
+      ### Fixed
+      - Bug fix descriptions (link to issue/PR)
+      
+      ### Changed
+      - Improvements and changes
+      
+      ## 👥 Contributors
+      
+      Thank you to all {{commit_history.contributor_count}} contributors!
+      {{commit_history.contributors}}
+      
+      ## 📊 Stats
+      
+      - {{commit_history.commit_count}} commits
+      - {{commit_history.files_changed}}
+      - X days of development
+      
+      **Full Changelog**: {{tag_info.repo_url}}/compare/{{tag_info.previous_tag}}...{{tag_info.tag_name}}
+      ```
+      
+      ## Guidelines
+      
+      1. **Lead with impact**: What can users do now?
+      2. **Highlight breaking changes prominently**
+      3. **Use emojis sparingly** for visual scanning
+      4. **Link to PRs and commits** for details
+      5. **Credit contributors** by name
+      6. **Keep it engaging** but professional
+      
+      ## Output
+      
+      Return ONLY the release notes as markdown.
+      Do not include JSON wrapping.
+    output: "release_notes"
+    timeout: 300
+
+  # ==========================================================================
+  # Step 7: Generate migration guide (if breaking changes exist)
+  # ==========================================================================
+  - id: "generate-migration-guide"
+    condition: "{{commit_analysis.statistics.has_breaking_changes}} == true"
+    agent: "foundation:integration-specialist"
+    prompt: |
+      Generate a comprehensive migration guide for {{tag_info.tag_name}}.
+      
+      ## Breaking Changes
+      
+      {{breaking_changes_detail}}
+      
+      ## Commit Analysis
+      
+      {{commit_analysis}}
+      
+      ## Format
+      
+      Create a step-by-step migration guide:
+      
+      ```markdown
+      # Migration Guide: {{tag_info.previous_tag}} → {{tag_info.tag_name}}
+      
+      This guide helps you upgrade from {{tag_info.previous_tag}} to {{tag_info.tag_name}}.
+      
+      ## Overview
+      
+      This is a **{{tag_info.release_type}} release** with **{{commit_analysis.statistics.breaking_count}} breaking change(s)**.
+      
+      **Estimated migration time**: [from breaking_changes_detail]
+      
+      ## Quick Checklist
+      
+      - [ ] Review breaking changes below
+      - [ ] Update code following migration steps
+      - [ ] Update tests
+      - [ ] Update documentation
+      - [ ] Test in staging environment
+      
+      ## Breaking Changes
+      
+      ### 1. [Breaking Change Title]
+      
+      **Impact**: [Who is affected and how]
+      
+      **What changed**: [Technical description]
+      
+      **Migration steps**:
+      
+      1. Step 1...
+      2. Step 2...
+      
+      **Before**:
+      ```[language]
+      // Old code example
+      ```
+      
+      **After**:
+      ```[language]
+      // New code example
+      ```
+      
+      ### 2. [Next Breaking Change]
+      
+      [Repeat format]
+      
+      ## Additional Resources
+      
+      - Full changelog: [link]
+      - Release notes: [link]
+      - GitHub discussions: [link]
+      
+      ## Getting Help
+      
+      If you encounter issues during migration:
+      - Open an issue: [link]
+      - Check discussions: [link]
+      ```
+      
+      ## Guidelines
+      
+      1. **Be step-by-step**: Clear, actionable instructions
+      2. **Include code examples**: Before and after for each change
+      3. **Prioritize by impact**: Most critical changes first
+      4. **Provide context**: Why the change was made
+      5. **Link to resources**: PR discussions, docs, examples
+      
+      ## Output
+      
+      Return ONLY the migration guide as markdown.
+      Do not include JSON wrapping.
+    output: "migration_guide"
+    timeout: 400
+    on_error: "continue"
+
+  # ==========================================================================
+  # Step 8: Generate blog post announcement (optional)
+  # ==========================================================================
+  - id: "generate-blog-post"
+    condition: "{{include_blog_post}} == true"
+    agent: "foundation:zen-architect"
+    mode: "ARCHITECT"
+    prompt: |
+      Generate a blog post announcement for {{tag_info.tag_name}}.
+      
+      ## Release Information
+      
+      {{commit_analysis}}
+      {{tag_info}}
+      {{commit_history}}
+      
+      ## Format
+      
+      Create an engaging blog post:
+      
+      ```markdown
+      ---
+      title: "Announcing [Project] {{tag_info.current_version}}"
+      date: {{commit_history.last_commit_date}}
+      author: [Author Name]
+      tags: [release, {{tag_info.release_type}}]
+      ---
+      
+      # Announcing [Project] {{tag_info.current_version}}
+      
+      [Opening hook: What's exciting about this release?]
+      
+      ## What's New
+      
+      ### [Feature/Fix 1]
+      
+      [Describe the problem it solves, how it works, why it matters]
+      
+      [Code example or screenshot if applicable]
+      
+      ### [Feature/Fix 2]
+      
+      [Description]
+      
+      ## Under the Hood
+      
+      [Technical improvements users might not see but benefit from]
+      
+      ## Breaking Changes
+      
+      [If any, explain clearly with migration guidance]
+      
+      ## What's Next
+      
+      [Roadmap preview, what's coming]
+      
+      ## Get Started
+      
+      [Installation/upgrade instructions]
+      
+      ## Contributors
+      
+      [Thank contributors, maybe highlight first-time contributors]
+      
+      ## Resources
+      
+      - Release notes: [link]
+      - Migration guide: [link]
+      - Full changelog: [link]
+      ```
+      
+      ## Tone
+      
+      - **Enthusiastic but professional**
+      - **User-benefit focused**
+      - **Technical but accessible**
+      - **Appreciative of contributors**
+      
+      ## Output
+      
+      Return ONLY the blog post as markdown.
+      Do not include JSON wrapping.
+    output: "blog_post"
+    timeout: 400
+    on_error: "continue"
+
+  # ==========================================================================
+  # Step 9: Generate social media content (optional)
+  # ==========================================================================
+  - id: "generate-social-media"
+    condition: "{{include_social_media}} == true"
+    agent: "foundation:zen-architect"
+    mode: "ANALYZE"
+    prompt: |
+      Generate social media content for {{tag_info.tag_name}} release.
+      
+      ## Release Highlights
+      
+      {{commit_analysis.highlights}}
+      {{commit_analysis.statistics}}
+      
+      ## Platforms
+      
+      Create posts for:
+      
+      1. **Twitter/X** (280 characters)
+         - Hook with impact
+         - 1-2 key features
+         - Link to release notes
+         - Relevant hashtags
+      
+      2. **LinkedIn** (1300 characters)
+         - Professional tone
+         - Business value
+         - Technical details
+         - Call to action
+      
+      3. **Mastodon/Threads** (500 characters)
+         - Community-focused
+         - Technical but approachable
+         - Include link
+      
+      ## Output Format
+      
+      Return JSON:
+      ```json
+      {
+        "twitter": "🚀 [Project] v{{tag_info.current_version}} is here! ...",
+        "linkedin": "Excited to announce [Project] {{tag_info.current_version}}...",
+        "mastodon": "New release! [Project] {{tag_info.current_version}}...",
+        "hashtags": ["#release", "#opensource", "#development"]
+      }
+      ```
+    output: "social_media"
+    parse_json: true
+    timeout: 200
+    on_error: "continue"
+
+  # ==========================================================================
+  # Step 10: Save all generated files
+  # ==========================================================================
+  - id: "save-files"
+    type: "bash"
+    command: |
+      set -euo pipefail
+      
+      output_dir="{{output_dir}}"
+      tag_name="{{tag_info.tag_name}}"
+      
+      # Create output directory structure
+      mkdir -p "$output_dir"
+      mkdir -p "$output_dir/social"
+      
+      # Save CHANGELOG entry
+      cat > "$output_dir/CHANGELOG-${tag_name}.md" << 'CHANGELOG_EOF'
+      {{changelog_entry}}
+      CHANGELOG_EOF
+      
+      # Save GitHub release notes
+      cat > "$output_dir/RELEASE-NOTES-${tag_name}.md" << 'RELEASE_EOF'
+      {{release_notes}}
+      RELEASE_EOF
+      
+      # Save migration guide if exists
+      {% if commit_analysis.statistics.has_breaking_changes %}
+      cat > "$output_dir/MIGRATION-${tag_name}.md" << 'MIGRATION_EOF'
+      {{migration_guide}}
+      MIGRATION_EOF
+      {% endif %}
+      
+      # Save blog post if generated
+      {% if include_blog_post %}
+      cat > "$output_dir/BLOG-POST-${tag_name}.md" << 'BLOG_EOF'
+      {{blog_post}}
+      BLOG_EOF
+      {% endif %}
+      
+      # Save social media content if generated
+      {% if include_social_media %}
+      cat > "$output_dir/social/twitter.txt" << 'TWITTER_EOF'
+      {{social_media.twitter}}
+      TWITTER_EOF
+      
+      cat > "$output_dir/social/linkedin.txt" << 'LINKEDIN_EOF'
+      {{social_media.linkedin}}
+      LINKEDIN_EOF
+      
+      cat > "$output_dir/social/mastodon.txt" << 'MASTODON_EOF'
+      {{social_media.mastodon}}
+      MASTODON_EOF
+      {% endif %}
+      
+      # Create summary file
+      cat > "$output_dir/README.md" << 'README_EOF'
+      # Release Documentation: {{tag_name}}
+      
+      Generated on: $(date -u +"%Y-%m-%d %H:%M:%S UTC")
+      
+      ## Files Generated
+      
+      - `CHANGELOG-${tag_name}.md` - Changelog entry for CHANGELOG.md
+      - `RELEASE-NOTES-${tag_name}.md` - GitHub release notes
+      {% if commit_analysis.statistics.has_breaking_changes %}- `MIGRATION-${tag_name}.md` - Migration guide
+      {% endif %}{% if include_blog_post %}- `BLOG-POST-${tag_name}.md` - Blog post announcement
+      {% endif %}{% if include_social_media %}- `social/` - Social media content (Twitter, LinkedIn, Mastodon)
+      {% endif %}
+      
+      ## Release Information
+      
+      - **Version**: {{tag_info.current_version}}
+      - **Previous Version**: {{tag_info.previous_version}}
+      - **Release Type**: {{tag_info.release_type}}
+      - **Commits**: {{commit_history.commit_count}}
+      - **Contributors**: {{commit_history.contributor_count}}
+      - **Breaking Changes**: {{commit_analysis.statistics.breaking_count}}
+      
+      ## Next Steps
+      
+      1. Review all generated files
+      2. Update CHANGELOG.md with the entry from `CHANGELOG-${tag_name}.md`
+      3. Create GitHub release using `RELEASE-NOTES-${tag_name}.md`
+      4. Publish blog post if applicable
+      5. Share on social media using the templates in `social/`
+      README_EOF
+      
+      # List all created files
+      echo "Files saved to: $output_dir"
+      ls -lh "$output_dir"
+      
+      echo "{\"output_dir\": \"$output_dir\", \"files_created\": true}"
+    output: "files_saved"
+    parse_json: true
+    timeout: 60
+
+  # ==========================================================================
+  # Step 11: Create git branch and PR (optional)
+  # ==========================================================================
+  - id: "create-pr"
+    condition: "{{skip_pr}} == false"
+    type: "bash"
+    command: |
+      set -euo pipefail
+      
+      cd "{{repo_path}}"
+      
+      tag_name="{{tag_info.tag_name}}"
+      branch_name="{{branch_name}}"
+      
+      # Use default branch name if not provided
+      if [ -z "$branch_name" ]; then
+        branch_name="release-${tag_name}-docs"
+      fi
+      
+      # Check if gh CLI is available
+      if ! command -v gh &> /dev/null; then
+        echo '{"error": "gh CLI not found, skipping PR creation", "pr_created": false}'
+        exit 0
+      fi
+      
+      # Check if gh is authenticated
+      if ! gh auth status &> /dev/null; then
+        echo '{"error": "gh not authenticated, skipping PR creation", "pr_created": false}'
+        exit 0
+      fi
+      
+      # Create and checkout new branch
+      git checkout -b "$branch_name" || {
+        echo '{"error": "Failed to create branch, may already exist", "pr_created": false}'
+        exit 0
+      }
+      
+      # Copy CHANGELOG entry to main CHANGELOG.md
+      if [ -f "CHANGELOG.md" ]; then
+        # Prepend new entry after title
+        temp_file=$(mktemp)
+        head -n 2 CHANGELOG.md > "$temp_file"
+        echo "" >> "$temp_file"
+        cat "{{output_dir}}/CHANGELOG-${tag_name}.md" >> "$temp_file"
+        echo "" >> "$temp_file"
+        tail -n +3 CHANGELOG.md >> "$temp_file"
+        mv "$temp_file" CHANGELOG.md
+      else
+        # Create new CHANGELOG.md
+        cat > CHANGELOG.md << 'CHANGELOG_NEW'
+      # Changelog
+      
+      All notable changes to this project will be documented in this file.
+      
+      {{changelog_entry}}
+      CHANGELOG_NEW
+      fi
+      
+      # Add all generated files
+      git add CHANGELOG.md
+      git add "{{output_dir}}"
+      
+      # Commit
+      git commit -m "docs: add release documentation for ${tag_name}
+
+      - Add changelog entry
+      - Add GitHub release notes
+      {% if commit_analysis.statistics.has_breaking_changes %}- Add migration guide
+      {% endif %}{% if include_blog_post %}- Add blog post announcement
+      {% endif %}{% if include_social_media %}- Add social media content
+      {% endif %}
+
+      Generated by git-tag-to-changelog recipe"
+      
+      # Push branch
+      git push -u origin "$branch_name"
+      
+      # Create PR
+      pr_url=$(gh pr create \
+        --title "📝 Release documentation for ${tag_name}" \
+        --body "## Release Documentation for ${tag_name}
+
+      This PR adds complete release documentation for ${tag_name}.
+
+      ### Generated Files
+
+      - ✅ CHANGELOG.md entry
+      - ✅ GitHub release notes
+      {% if commit_analysis.statistics.has_breaking_changes %}- ✅ Migration guide (breaking changes detected)
+      {% endif %}{% if include_blog_post %}- ✅ Blog post announcement
+      {% endif %}{% if include_social_media %}- ✅ Social media templates
+      {% endif %}
+
+      ### Release Information
+
+      - **Version**: {{tag_info.current_version}}
+      - **Previous**: {{tag_info.previous_version}}
+      - **Type**: {{tag_info.release_type}}
+      - **Commits**: {{commit_history.commit_count}}
+      - **Contributors**: {{commit_history.contributor_count}}
+      - **Breaking Changes**: {{commit_analysis.statistics.breaking_count}}
+
+      ### Next Steps
+
+      1. Review the generated documentation
+      2. Make any necessary edits
+      3. Merge this PR
+      4. Create the GitHub release using the release notes
+      5. Publish announcements
+
+      ---
+
+      Generated by \`git-tag-to-changelog\` recipe" \
+        --head "$branch_name")
+      
+      echo "{\"pr_created\": true, \"pr_url\": \"$pr_url\", \"branch\": \"$branch_name\"}"
+    output: "pr_info"
+    parse_json: true
+    timeout: 300
+    on_error: "continue"
+
+# Output Summary
+# ==============
+# After execution, you'll have:
+#
+# - tag_info: Version information and commit range
+# - commit_history: All commits with metadata
+# - commit_analysis: Categorized commits with breaking changes
+# - changelog_entry: CHANGELOG.md entry (Keep a Changelog format)
+# - release_notes: GitHub release notes (markdown)
+# - migration_guide: Migration guide (if breaking changes exist)
+# - blog_post: Blog post announcement (if enabled)
+# - social_media: Social media templates (if enabled)
+# - files_saved: Confirmation of saved files
+# - pr_info: PR details (if created)
+#
+# All files are saved to {{output_dir}} and optionally committed in a PR.

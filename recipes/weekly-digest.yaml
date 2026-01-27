@@ -1,0 +1,372 @@
+name: "weekly-digest"
+description: "Generate comprehensive weekly digests of Amplifier ecosystem activity including commits, PRs, releases, community highlights, and key metrics"
+version: "1.0.0"
+author: "Amplifier Recipes Collection"
+tags: ["community", "digest", "publishing", "automation", "marketing"]
+
+# Weekly Ecosystem Digest Recipe
+# ==============================
+#
+# Automatically generates a comprehensive weekly digest of ecosystem activity
+# Perfect for maintaining regular communication with the community
+#
+# WHAT IT GENERATES:
+# ------------------
+# - Blog post (Markdown) with full weekly digest
+# - Email version (condensed for newsletter)
+# - Social media snippets (Twitter/X, LinkedIn, Mastodon)
+# - Auto-opened for review
+#
+# WORKFLOW:
+# ---------
+# 1. Git Activity Scan: Commits, PRs, releases, metrics across repos
+# 2. Session Analysis: Usage patterns and engagement (optional)
+# 3. Community Highlights: External contributions, discussions, mentions
+# 4. Content Strategy: Top stories, structure, audience focus
+# 5. Digest Writing: Generate all content formats
+# 6. Distribution Prep: Copy to docs, open for review
+#
+# USAGE:
+# ------
+# Standard weekly digest:
+#   amplifier tool invoke recipes operation=execute recipe_path=./recipes/weekly-digest.yaml
+#
+# Custom date range:
+#   amplifier tool invoke recipes operation=execute recipe_path=./recipes/weekly-digest.yaml context='{"date_range": "last 14 days"}'
+#
+# With session analysis:
+#   amplifier tool invoke recipes operation=execute recipe_path=./recipes/weekly-digest.yaml context='{"include_sessions": true}'
+#
+# Specific repos only:
+#   amplifier tool invoke recipes operation=execute recipe_path=./recipes/weekly-digest.yaml context='{"repos": "amplifier-core,amplifier-cli"}'
+#
+# SCHEDULING:
+# -----------
+# Can be automated via cron or GitHub Actions to run every Monday
+
+context:
+  # Time range for activity scan (e.g., 'last 7 days', 'last week', 'since 2026-01-11')
+  date_range: "last 7 days"
+  
+  # Comma-separated list of repos to scan (leave empty to scan all from MODULES.md)
+  repos: ""
+  
+  # Whether to analyze session data (may contain private information)
+  include_sessions: false
+
+steps:
+  # ==========================================================================
+  # Step 1: Git Activity Scan
+  # ==========================================================================
+  - id: "git-activity"
+    agent: "foundation:story-researcher"
+    mode: "ANALYZE"
+    prompt: |
+      Scan the Amplifier ecosystem for activity over {{date_range}}.
+      
+      {% if repos != "" %}
+      Focus on these repositories: {{repos}}
+      {% else %}
+      Scan all repositories mentioned in MODULES.md or the main ecosystem repos.
+      {% endif %}
+      
+      For each repository with activity, extract:
+      1. **Commits** - by contributor with brief descriptions
+      2. **Merged PRs** - with PR number, title, and description
+      3. **New Releases/Tags** - version numbers and release notes
+      4. **Velocity Metrics** - commits per repo, PRs merged, active contributors
+      
+      Use git commands to analyze activity:
+      - `git log --since="{{date_range}}" --pretty=format:"%h - %an: %s" --no-merges`
+      - `git tag --sort=-creatordate` (for recent tags)
+      - GitHub CLI if available: `gh pr list --state merged --search "merged:>{{date_range}}"`
+      
+      Organize findings by repository and provide a summary of the most active areas.
+      Include metrics like:
+      - Total commits across ecosystem
+      - Number of active contributors
+      - Number of PRs merged
+      - Any significant releases
+      
+      Present in a structured format that's easy for subsequent agents to process.
+    output: "git_activity"
+    timeout: 600
+
+  # ==========================================================================
+  # Step 2: Session Analysis (Optional)
+  # ==========================================================================
+  - id: "session-analysis"
+    condition: "{{include_sessions}} == true"
+    agent: "foundation:data-analyst"
+    mode: "ANALYZE"
+    prompt: |
+      Analyze Amplifier session data from {{date_range}} to understand usage patterns.
+      
+      Look for session files in:
+      - ~/.amplifier/sessions/
+      - .amplifier/sessions/
+      - Any documented session storage locations
+      
+      Extract and analyze:
+      1. **Tool Usage** - which tools/functions were most used
+      2. **Agent Usage** - which agents were most invoked
+      3. **Session Patterns** - types of tasks, durations, complexity
+      4. **Engagement Metrics** - total sessions, unique users (if identifiable), session lengths
+      5. **Interesting Sessions** - identify 1-2 sessions that could become case studies
+      
+      Be mindful of privacy:
+      - Don't include user-identifiable information
+      - Focus on aggregate patterns, not individual behavior
+      - Summarize file paths/content generically
+      
+      If session data is unavailable or inaccessible, report that and suggest alternative data sources.
+      
+      Provide:
+      - High-level metrics (numbers)
+      - Notable patterns or trends
+      - 1-2 interesting session summaries (anonymized)
+    output: "session_analysis"
+    timeout: 600
+    on_error: "continue"
+
+  # ==========================================================================
+  # Step 3: Community Highlights
+  # ==========================================================================
+  - id: "community-highlights"
+    agent: "foundation:community-manager"
+    mode: "ANALYZE"
+    prompt: |
+      Discover and highlight community activity around Amplifier over {{date_range}}.
+      
+      Search for:
+      1. **External Contributions**
+         - Community-created repos using Amplifier
+         - External PRs or issues from non-core contributors
+         - Plugins, extensions, or integrations
+      
+      2. **GitHub Discussions & Issues**
+         - Notable feature requests or discussions
+         - Issues that sparked interesting conversations
+         - Questions that led to documentation improvements
+      
+      3. **New Contributors**
+         - First-time contributors (check git logs)
+         - New community members engaging in discussions
+      
+      4. **External Mentions**
+         - Blog posts mentioning Amplifier (search Google)
+         - Social media discussions (if searchable)
+         - Reddit, HackerNews, or other community platforms
+      
+      Use available tools:
+      - Web search for "Amplifier AI agent" OR "Amplifier framework"
+      - GitHub CLI: `gh issue list --label "community"` or similar
+      - Git logs: `git shortlog --summary --numbered --since="{{date_range}}"`
+      
+      Prioritize quality over quantity. Select 3-5 highlights that showcase:
+      - Community growth
+      - Interesting use cases
+      - Helpful contributions
+      - Engaging discussions
+      
+      Present in narrative form with links and attributions.
+    output: "community_highlights"
+    timeout: 600
+
+  # ==========================================================================
+  # Step 4: Content Strategy
+  # ==========================================================================
+  - id: "content-strategy"
+    agent: "foundation:content-strategist"
+    mode: "ANALYZE"
+    prompt: |
+      Review all gathered data and determine the content strategy for this week's digest.
+      
+      **Available Data:**
+      - Git Activity: {{git_activity}}
+      {% if include_sessions %}
+      - Session Analysis: {{session_analysis}}
+      {% endif %}
+      - Community Highlights: {{community_highlights}}
+      
+      **Your Task:**
+      1. **Identify Top 3-5 Stories** - What are the most important/interesting developments?
+         - Consider impact, novelty, community interest
+         - Balance technical depth with accessibility
+         - Highlight both code and community stories
+      
+      2. **Determine Digest Structure** - Recommend sections and order
+         - Standard sections: Highlights, New Features, Community, Stats, What's Next
+         - Suggest any special sections for this week (e.g., "Spotlight on...", "Behind the Scenes")
+      
+      3. **Define Audience Focus** - Who is this digest for?
+         - Mixed audience: core contributors, external developers, users, potential adopters
+         - Tone: friendly, informative, celebration-oriented
+      
+      4. **Set Content Priorities**
+         - Which stories need most detail?
+         - Which can be brief mentions?
+         - Any stories to hold for next week?
+      
+      5. **Suggest Headlines/Hooks**
+         - Main headline for the digest
+         - Section hooks that draw readers in
+      
+      Provide a clear content brief for the marketing-writer to follow.
+    output: "content_brief"
+    timeout: 600
+
+  # ==========================================================================
+  # Step 5: Digest Writing
+  # ==========================================================================
+  - id: "digest-writing"
+    agent: "foundation:marketing-writer"
+    mode: "CREATE"
+    prompt: |
+      Write the Amplifier Weekly Digest based on the content strategy and gathered data.
+      
+      **Content Brief:**
+      {{content_brief}}
+      
+      **Source Data:**
+      - Git Activity: {{git_activity}}
+      - Community Highlights: {{community_highlights}}
+      {% if include_sessions %}
+      - Session Analysis: {{session_analysis}}
+      {% endif %}
+      
+      **Create the following deliverables:**
+      
+      1. **Blog Post (Markdown)** - Full weekly digest for publishing
+         - Engaging headline with date range
+         - Opening paragraph that hooks readers
+         - Sections as recommended in content brief (typically):
+           * 🌟 Highlights - Top 3-5 stories
+           * 🚀 New Features & Releases - Technical updates
+           * 💬 Community - Contributions, discussions, new members
+           * 📊 By The Numbers - Key metrics and statistics
+           * 🔮 What's Next - Preview of upcoming work
+         - Closing thought/call-to-action
+         - Format: Markdown with emojis, headers, links, code blocks where appropriate
+         - Length: 800-1200 words (readable in 5-7 minutes)
+      
+      2. **Email Version** - Condensed for newsletter
+         - Same structure but more concise
+         - Bullets and scannable formatting
+         - Clear CTAs (links to full posts, repos, discussions)
+         - Length: 400-600 words
+      
+      3. **Social Media Snippets**
+         - Twitter/X (280 chars) - Punchy highlight with link
+         - LinkedIn (1-2 paragraphs) - Professional summary with key metrics
+         - Mastodon/Bluesky (500 chars) - Community-focused highlight
+      
+      **Tone & Style:**
+      - Friendly and conversational but professional
+      - Celebrate achievements and contributors by name
+      - Use emojis sparingly for section markers
+      - Link generously to PRs, issues, repos, contributors
+      - Balance technical accuracy with accessibility
+      
+      **Important:**
+      - Save blog post to: workspace/blog/weekly-digest-YYYY-MM-DD.md
+      - Include email and social versions in the same file under headers
+      - Use today's date for filename
+      
+      After writing, output the file path you created.
+    output: "digest_content"
+    timeout: 900
+
+  # ==========================================================================
+  # Step 6: Save Digest to File
+  # ==========================================================================
+  - id: "save-digest"
+    type: "bash"
+    command: |
+      set -euo pipefail
+      
+      # Create directories
+      mkdir -p workspace/blog
+      
+      # Generate filename with current date
+      DIGEST_FILE="workspace/blog/weekly-digest-$(date +%Y-%m-%d).md"
+      
+      # Save the digest content
+      cat > "$DIGEST_FILE" << 'DIGEST_EOF'
+      {{digest_content}}
+      DIGEST_EOF
+      
+      # Output the file path as JSON
+      echo "{\"digest_file\": \"$DIGEST_FILE\"}"
+    output: "digest_file_info"
+    parse_json: true
+    timeout: 60
+
+  # ==========================================================================
+  # Step 7: Distribution Preparation
+  # ==========================================================================
+  - id: "distribution"
+    type: "bash"
+    command: |
+      set -euo pipefail
+      
+      DIGEST_FILE="{{digest_file_info.digest_file}}"
+      
+      # Create blog directory in docs if it exists
+      if [ -d "docs" ]; then
+        mkdir -p docs/blog
+        cp "$DIGEST_FILE" "docs/blog/"
+        echo "✓ Copied to docs/blog/ for GitHub Pages"
+      fi
+      
+      # Open the digest for review (platform-specific)
+      if [[ "$OSTYPE" == "darwin"* ]]; then
+        open "$DIGEST_FILE"
+        echo "✓ Opened digest for review in editor"
+      elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
+        xdg-open "$DIGEST_FILE" 2>/dev/null || echo "ℹ️  Digest ready at: $DIGEST_FILE"
+      else
+        echo "ℹ️  Digest ready at: $DIGEST_FILE"
+      fi
+      
+      # Print distribution summary
+      echo ""
+      echo "📬 DISTRIBUTION CHECKLIST"
+      echo "========================="
+      echo ""
+      echo "✅ Digest generated: $DIGEST_FILE"
+      echo ""
+      echo "📝 Publishing Options:"
+      echo "   • GitHub Pages: commit docs/blog/weekly-digest-*.md"
+      echo "   • Newsletter: use the Email Version section"
+      echo "   • Social Media: use the Social Media Snippets section"
+      echo ""
+      echo "🔗 Next Steps:"
+      echo "   1. Review the digest (should be open in your editor)"
+      echo "   2. Edit any sections as needed"
+      echo "   3. Commit to GitHub: git add docs/blog && git commit -m 'Add weekly digest'"
+      echo "   4. Post social media snippets from the file"
+      echo "   5. Send email version via your newsletter platform"
+      echo ""
+      echo "Date range: {{date_range}}"
+      echo "Generated: $(date -u +"%Y-%m-%d %H:%M UTC")"
+      
+      echo "{\"success\": true, \"file\": \"$DIGEST_FILE\"}"
+    output: "distribution_result"
+    parse_json: true
+    timeout: 60
+
+# Output Summary
+# ==============
+# After execution, you'll have:
+#
+# - git_activity: Structured git activity report
+# - session_analysis: Session usage patterns (if enabled)
+# - community_highlights: Curated community highlights
+# - content_brief: Content strategy and structure
+# - digest_content: Full digest with all formats
+# - digest_file_info: Location of saved digest file
+# - distribution_result: Confirmation of distribution prep
+#
+# The digest will be saved to workspace/blog/weekly-digest-YYYY-MM-DD.md
+# and automatically opened for review

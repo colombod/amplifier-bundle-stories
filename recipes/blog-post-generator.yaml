@@ -1,0 +1,779 @@
+name: "blog-post-generator"
+description: "Generate engaging blog posts about Amplifier features, capabilities, or developments for community and public audiences"
+version: "1.0.0"
+author: "Amplifier Recipes Collection"
+tags: ["blog", "marketing", "content", "feature-announcement", "community"]
+
+# Blog Post Generator Recipe
+# ==========================
+#
+# Automatically generates comprehensive blog posts and social media content
+# from feature development data (git history, PRs, code, docs).
+#
+# WHAT IT GENERATES:
+# ------------------
+# - Blog post (Markdown with frontmatter)
+# - Social media versions (Twitter, LinkedIn, Discord)
+# - Technical appendix (Word, optional)
+# - All content ready to publish
+#
+# WORKFLOW:
+# ---------
+# 1. Feature Research: Gather git history, PRs, code, docs, metrics
+# 2. Content Planning: Determine narrative arc, audience, structure
+# 3. Blog Post Writing: Create engaging 800-1200 word post
+# 4. Social Media: Generate Twitter thread, LinkedIn, Discord posts
+# 5. Technical Appendix: Optional detailed technical companion doc
+# 6. Finalization: Save files, auto-open blog post
+#
+# USAGE:
+# ------
+# In a session:
+#   "run blog-post-generator recipe with feature_name='shadow environments'"
+#   "run blog-post-generator with pr_number=456 include_technical_appendix=true"
+#
+# From CLI:
+#   amplifier tool invoke recipes operation=execute \
+#     recipe_path=blog-post-generator.yaml \
+#     context='{"feature_name": "shadow environments"}'
+#
+# REQUIREMENTS:
+# -------------
+# - git CLI
+# - gh CLI (for PR data)
+# - Node.js + docx package (for technical appendix)
+#
+# AGENTS USED:
+# ------------
+# - story-researcher: Data gathering and feature analysis
+# - content-strategist: Narrative planning and audience targeting
+# - marketing-writer: Blog post and social media content creation
+# - technical-writer: Technical appendix (optional)
+
+context:
+  # Required: Feature to write about (e.g., "shadow environments", "recipe system")
+  feature_name: ""
+  
+  # Optional: PR number for specific feature PR
+  pr_number: ""
+  
+  # Optional: Include technical appendix (Word doc)
+  include_technical_appendix: false
+  
+  # Optional: Target audience (technical, community, or mixed)
+  target_audience: "community"
+  
+  # Optional: Repository path (defaults to current directory)
+  repo_path: "."
+  
+  # Optional: Output directory for generated files
+  output_dir: "./workspace/blog/posts"
+
+steps:
+  # ==========================================================================
+  # Step 1: Feature Research - Gather Data
+  # ==========================================================================
+  - id: "research"
+    agent: "story-researcher"
+    mode: "ANALYZE"
+    prompt: |
+      Research the feature "{{feature_name}}" to gather data for a blog post.
+      
+      {% if pr_number %}
+      Primary PR: #{{pr_number}}
+      {% endif %}
+      
+      Repository: {{repo_path}}
+      
+      ## Your Task
+      
+      Gather comprehensive data about this feature:
+      
+      ### 1. Git History
+      - Find commits related to this feature (search commit messages for "{{feature_name}}")
+      - Identify the PR(s) that introduced it {% if pr_number %}(start with #{{pr_number}}){% endif %}
+      - Extract timeline: when did development start/end?
+      - Count commits, lines changed, files modified
+      - Identify contributors
+      
+      **Commands to use:**
+      ```bash
+      cd {{repo_path}}
+      
+      # Find related commits
+      git log --all --grep="{{feature_name}}" --pretty=format:"%h|%an|%ar|%s" --no-merges
+      
+      {% if pr_number %}
+      # Get PR details
+      gh pr view {{pr_number}} --json number,title,body,author,createdAt,mergedAt,commits
+      {% endif %}
+      
+      # Search for PRs mentioning the feature
+      gh pr list --search "{{feature_name}}" --state merged --limit 10 --json number,title,author,mergedAt
+      ```
+      
+      ### 2. Technical Details
+      - What files implement this feature?
+      - What are the key code changes?
+      - Are there new APIs, commands, or capabilities?
+      - Any configuration or setup required?
+      
+      **Commands to use:**
+      ```bash
+      # Search codebase for feature mentions
+      grep -r "{{feature_name}}" --include="*.py" --include="*.ts" --include="*.yaml" . | head -20
+      
+      # Find related documentation
+      find . -name "*.md" -exec grep -l "{{feature_name}}" {} \;
+      ```
+      
+      ### 3. Impact & Metrics
+      - What problem does this solve?
+      - What's the user-facing benefit?
+      - Any performance improvements or metrics?
+      - Are there usage examples or test cases?
+      
+      ### 4. User Feedback (if available)
+      - PR comments and discussions
+      - Issue references (what problems did this address?)
+      - Community feedback or quotes
+      
+      ## Output Format
+      
+      Provide structured JSON:
+      ```json
+      {
+        "feature_name": "{{feature_name}}",
+        "timeline": {
+          "first_commit": "2026-01-10",
+          "last_commit": "2026-01-15",
+          "merged_date": "2026-01-15",
+          "development_days": 5
+        },
+        "git_data": {
+          "primary_pr": 123,
+          "related_prs": [123, 124],
+          "commits": 15,
+          "contributors": ["user1", "user2"],
+          "files_changed": 12,
+          "lines_added": 450,
+          "lines_removed": 120
+        },
+        "technical_details": {
+          "key_files": ["file1.py", "file2.ts"],
+          "new_capabilities": ["capability1", "capability2"],
+          "apis": ["api.method1()", "api.method2()"],
+          "configuration": "any setup required"
+        },
+        "impact": {
+          "problem_solved": "Description of the pain point",
+          "benefits": ["benefit1", "benefit2"],
+          "use_cases": ["use case 1", "use case 2"],
+          "metrics": {
+            "before": "old state",
+            "after": "new state",
+            "improvement": "X% faster/smaller/better"
+          }
+        },
+        "quotes": [
+          {
+            "author": "username",
+            "text": "This is amazing!",
+            "source": "PR #123 comment"
+          }
+        ],
+        "examples": [
+          {
+            "title": "Example 1",
+            "code": "// code example",
+            "description": "what it demonstrates"
+          }
+        ]
+      }
+      ```
+      
+      **Important:** If data is missing (no PR found, no metrics available), note it explicitly in the output.
+    output: "research_data"
+    timeout: 600
+
+  # ==========================================================================
+  # Step 2: Content Planning - Determine Strategy
+  # ==========================================================================
+  - id: "planning"
+    agent: "content-strategist"
+    mode: "ANALYZE"
+    prompt: |
+      Plan the blog post content for "{{feature_name}}".
+      
+      ## Research Data
+      
+      {{research_data}}
+      
+      ## Context
+      
+      - Target audience: {{target_audience}}
+      - Format: Blog post (800-1200 words) + social media
+      - Goal: Generate excitement and adoption
+      
+      ## Your Task
+      
+      Create a content strategy that determines:
+      
+      ### 1. Narrative Arc
+      Choose the best story structure:
+      - **Problem/Solution/Impact**: Feature solves a specific pain point
+      - **Journey/Discovery**: How the feature was developed, lessons learned
+      - **Before/After**: Comparison showing dramatic improvement
+      
+      Which arc fits this feature best based on the research data?
+      
+      ### 2. Key Points to Highlight
+      From the research data, identify:
+      - The 3-5 most compelling points
+      - The strongest metrics or evidence
+      - The most relatable use cases
+      - Any wow-factor moments
+      
+      ### 3. Target Audience Refinement
+      Given the feature and data, should we:
+      - Stay with "{{target_audience}}" audience?
+      - Adjust to be more/less technical?
+      - Include multiple audience layers?
+      
+      ### 4. Blog Post Structure
+      Plan the sections:
+      - Headline (catchy, benefit-focused)
+      - Hook (opening paragraph)
+      - Problem section
+      - Solution section
+      - Examples section
+      - Impact/Results section
+      - Call to action
+      
+      ### 5. Social Media Strategy
+      What's the hook for each platform?
+      - Twitter: What's the 280-character pitch?
+      - LinkedIn: What's the professional angle?
+      - Discord: What will excite the community?
+      
+      ## Output Format
+      
+      Provide a complete content plan:
+      ```json
+      {
+        "narrative_arc": "problem_solution_impact",
+        "target_audience": "community",
+        "blog_post": {
+          "headline": "Catchy headline here",
+          "hook": "Opening paragraph that grabs attention",
+          "structure": [
+            {"section": "The Problem", "key_points": ["point1", "point2"], "word_count": 200},
+            {"section": "The Solution", "key_points": ["point1", "point2"], "word_count": 400},
+            {"section": "Real Examples", "key_points": ["example1", "example2"], "word_count": 300},
+            {"section": "The Impact", "key_points": ["metric1", "metric2"], "word_count": 200},
+            {"section": "Get Started", "key_points": ["step1", "step2"], "word_count": 100}
+          ],
+          "total_words": 1200,
+          "tone": "enthusiastic but authentic",
+          "call_to_action": "Try it today with: amplifier [command]"
+        },
+        "social_media": {
+          "twitter_hook": "🚀 Just shipped: [feature] - [benefit in <280 chars]",
+          "linkedin_angle": "Professional angle focusing on productivity/ROI",
+          "discord_hook": "Community-focused excitement about capability"
+        },
+        "highlights": [
+          "Most important point 1",
+          "Most important point 2",
+          "Most important point 3"
+        ]
+      }
+      ```
+    output: "content_plan"
+    parse_json: true
+    timeout: 600
+
+  # ==========================================================================
+  # Step 3: Blog Post Writing
+  # ==========================================================================
+  - id: "write-blog-post"
+    agent: "marketing-writer"
+    mode: "CREATE"
+    prompt: |
+      Write an engaging blog post about "{{feature_name}}".
+      
+      ## Content Plan
+      
+      {{content_plan}}
+      
+      ## Research Data
+      
+      {{research_data}}
+      
+      ## Your Task
+      
+      Create a complete blog post following the content plan.
+      
+      ### Format
+      
+      Markdown with frontmatter:
+      ```markdown
+      ---
+      title: "[Headline from content plan]"
+      date: [Today's date: 2026-01-18]
+      author: Amplifier Team
+      tags: [feature, announcement, {{feature_name}}]
+      slug: [URL-friendly version of feature name]
+      ---
+      
+      # [Headline]
+      
+      [Hook paragraph - grab attention immediately]
+      
+      ## The Problem
+      
+      [Describe the pain point this feature solves]
+      [Make it relatable - use "you" language]
+      [Include concrete examples]
+      
+      ## The Solution
+      
+      [Introduce the feature]
+      [Explain how it works - accessible but accurate]
+      [Show the key capabilities]
+      
+      ### How It Works
+      
+      [Step-by-step or conceptual explanation]
+      
+      ## Real Examples
+      
+      [Include 2-3 concrete examples from research data]
+      [Use code blocks with syntax highlighting]
+      [Show before/after if applicable]
+      
+      ```bash
+      # Example command or usage
+      amplifier [command]
+      ```
+      
+      ## The Impact
+      
+      [Quantify the benefits with metrics from research]
+      [Show the improvements clearly]
+      [Include any user quotes]
+      
+      ## Get Started
+      
+      [Clear, actionable steps to try this feature]
+      [Link to documentation]
+      [Invite feedback and contributions]
+      
+      ## What's Next
+      
+      [Future possibilities]
+      [Roadmap preview if applicable]
+      [Community involvement opportunities]
+      
+      ---
+      
+      *[Credits to contributors from research data]*
+      ```
+      
+      ### Writing Guidelines
+      
+      1. **Make it accessible**: No jargon without explanation
+      2. **Make it engaging**: Use concrete examples, real scenarios
+      3. **Make it actionable**: Clear next steps, copy-paste commands
+      4. **Make it authentic**: Don't oversell, acknowledge reality
+      5. **Target length**: 800-1200 words
+      6. **SEO-friendly**: Use feature name in headings, clear structure
+      
+      ### Tone
+      
+      - Enthusiastic but authentic
+      - Professional but approachable  
+      - Benefits-focused, not feature-list
+      - Welcoming to newcomers
+      - Credit contributors generously
+      
+      ## Output
+      
+      Return ONLY the complete blog post as markdown.
+      Do not include JSON wrapping or explanations.
+    output: "blog_post"
+    timeout: 600
+
+  # ==========================================================================
+  # Step 4: Social Media Content
+  # ==========================================================================
+  - id: "write-social-media"
+    agent: "marketing-writer"
+    mode: "CREATE"
+    prompt: |
+      Create social media content for "{{feature_name}}" blog post.
+      
+      ## Content Plan
+      
+      {{content_plan}}
+      
+      ## Research Data
+      
+      {{research_data}}
+      
+      ## Blog Post
+      
+      {{blog_post}}
+      
+      ## Your Task
+      
+      Generate ready-to-post social media content for multiple platforms.
+      
+      ### 1. Twitter/X Thread (6-8 tweets)
+      
+      **Format:**
+      ```
+      1/ 🚀 [Hook - why this matters]
+      
+      2/ The problem: [Relatable pain point]
+      
+      3/ The solution: [How feature works, simplified]
+      
+      4/ Real example:
+      ```
+      [code example]
+      ```
+      
+      5/ The impact: [Specific metrics/improvements]
+      
+      6/ Try it: [One command or simple step]
+      
+      7/ What's next: [Future roadmap tease]
+      
+      8/ Read more: [Link to blog post]
+      ```
+      
+      **Guidelines:**
+      - Each tweet max 280 characters
+      - Use emojis sparingly but effectively
+      - Include code example in thread
+      - Make thread valuable standalone
+      
+      ### 2. LinkedIn Post (Professional)
+      
+      **Format:**
+      ```
+      I'm excited to share [feature] in Amplifier 🎉
+      
+      [Opening: What it is and why it matters for productivity/ROI]
+      
+      The challenge:
+      [Brief problem description]
+      
+      Our approach:
+      [Solution at high level]
+      
+      The results:
+      • [Metric 1]
+      • [Metric 2]
+      • [Metric 3]
+      
+      [Personal reflection or team acknowledgment]
+      
+      [Call to action with blog post link]
+      
+      #DeveloperProductivity #AIEngineering #OpenSource
+      ```
+      
+      **Guidelines:**
+      - Professional but personal tone
+      - Focus on business value
+      - 1000-1300 characters
+      - Include relevant hashtags
+      
+      ### 3. Discord/Teams Announcement
+      
+      **Format:**
+      ```
+      🚀 **New Feature: [Feature Name]**
+      
+      **TL;DR:** [One-line summary of benefit]
+      
+      **What's new:**
+      [Brief bullet list of capabilities]
+      
+      **Try it:**
+      ```
+      [command example]
+      ```
+      
+      **Read more:** [Link to blog post]
+      
+      **Feedback welcome!** Drop your thoughts in [#feedback] or open an issue.
+      
+      cc: @contributors-from-research
+      ```
+      
+      **Guidelines:**
+      - Community-focused
+      - Technical but welcoming
+      - Invite participation
+      - Tag contributors
+      
+      ## Output Format
+      
+      Provide all social media content in markdown sections:
+      
+      ```markdown
+      # Social Media Content: [Feature Name]
+      
+      ## Twitter/X Thread
+      
+      [Full thread with tweet numbers]
+      
+      ## LinkedIn Post
+      
+      [Complete LinkedIn post]
+      
+      ## Discord/Teams Announcement
+      
+      [Complete announcement]
+      
+      ## Suggested Hashtags
+      
+      [List of relevant hashtags]
+      ```
+      
+      Return ONLY the markdown content.
+      Do not include JSON wrapping.
+    output: "social_media"
+    timeout: 400
+
+  # ==========================================================================
+  # Step 5: Technical Appendix (Optional)
+  # ==========================================================================
+  - id: "write-technical-appendix"
+    condition: "{{include_technical_appendix}} == true"
+    agent: "technical-writer"
+    mode: "CREATE"
+    prompt: |
+      Create a detailed technical appendix for "{{feature_name}}".
+      
+      ## Research Data
+      
+      {{research_data}}
+      
+      ## Blog Post
+      
+      {{blog_post}}
+      
+      ## Your Task
+      
+      Create a comprehensive technical companion document using Word format.
+      This is for developers who want deep technical details beyond the blog post.
+      
+      ### Structure
+      
+      1. **Overview**
+         - Feature summary
+         - Architecture overview
+         - Key components
+      
+      2. **Implementation Details**
+         - Code structure
+         - Key files and their roles
+         - API reference
+         - Data flows
+      
+      3. **Code Examples**
+         - Complete working examples
+         - Advanced use cases
+         - Integration patterns
+      
+      4. **Architecture**
+         - Design decisions
+         - Trade-offs made
+         - Performance considerations
+      
+      5. **Troubleshooting**
+         - Common issues
+         - Error messages
+         - Debug strategies
+      
+      6. **References**
+         - Links to source code (repo:file:line)
+         - Related PRs and issues
+         - External resources
+      
+      ### Implementation
+      
+      Create a Node.js script using the Word template:
+      
+      ```javascript
+      const { createTechnicalDoc } = require('./workspace/docx/templates/technical-doc-template.js');
+      const { Packer } = require('docx');
+      const fs = require('fs');
+      const path = require('path');
+      
+      const title = "{{feature_name}}: Technical Reference";
+      const overview = `[Your overview section - 2-3 paragraphs]`;
+      const implementation = `[Your implementation details - 4-5 sections with code]`;
+      const examples = `[Your code examples - 3-4 complete examples]`;
+      const architecture = `[Your architecture section - design decisions]`;
+      const troubleshooting = `[Your troubleshooting guide]`;
+      
+      const doc = createTechnicalDoc(
+        title,
+        overview,
+        implementation,
+        examples,
+        architecture,
+        troubleshooting
+      );
+      
+      // Create slug from feature name
+      const slug = "{{feature_name}}".toLowerCase().replace(/\s+/g, '-');
+      const outputPath = path.join('workspace/docx/output', `${slug}-technical.docx`);
+      
+      // Save file
+      fs.mkdirSync('workspace/docx/output', { recursive: true });
+      
+      Packer.toBuffer(doc).then(buffer => {
+        fs.writeFileSync(outputPath, buffer);
+        console.log(`✅ Technical appendix saved to: ${outputPath}`);
+      }).catch(err => {
+        console.error(`❌ Error: ${err.message}`);
+        process.exit(1);
+      });
+      ```
+      
+      Save this script and execute it with Node.js.
+      Output the final file path.
+      
+      ### Writing Guidelines
+      
+      - Assume reader is a developer
+      - Include actual code from the codebase (verified)
+      - Link to specific file:line references
+      - Show error handling and edge cases
+      - Document all APIs comprehensively
+    output: "technical_appendix_path"
+    timeout: 900
+    on_error: "continue"
+
+  # ==========================================================================
+  # Step 6: Save All Files
+  # ==========================================================================
+  - id: "save-files"
+    type: "bash"
+    command: |
+      set -euo pipefail
+      
+      # Create slug from feature name
+      FEATURE_NAME="{{feature_name}}"
+      SLUG=$(echo "$FEATURE_NAME" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9-]/-/g' | sed 's/--*/-/g' | sed 's/^-//;s/-$//')
+      
+      # Create output directories
+      OUTPUT_DIR="{{output_dir}}"
+      mkdir -p "$OUTPUT_DIR"
+      mkdir -p "${OUTPUT_DIR}/../social"
+      
+      # Save blog post
+      BLOG_FILE="${OUTPUT_DIR}/${SLUG}.md"
+      cat > "$BLOG_FILE" << 'BLOG_EOF'
+      {{blog_post}}
+      BLOG_EOF
+      
+      # Save social media content
+      SOCIAL_FILE="${OUTPUT_DIR}/../social/${SLUG}-social.md"
+      cat > "$SOCIAL_FILE" << 'SOCIAL_EOF'
+      {{social_media}}
+      SOCIAL_EOF
+      
+      # Copy blog post to docs/blog/posts/ if that directory exists
+      if [ -d "docs/blog/posts" ]; then
+        cp "$BLOG_FILE" "docs/blog/posts/${SLUG}.md"
+        echo "✅ Copied blog post to: docs/blog/posts/${SLUG}.md"
+      fi
+      
+      # Summary
+      echo ""
+      echo "✅ Blog post generation complete!"
+      echo ""
+      echo "📝 Files created:"
+      echo "   - Blog post: $BLOG_FILE"
+      echo "   - Social media: $SOCIAL_FILE"
+      {% if include_technical_appendix %}echo "   - Technical appendix: {{technical_appendix_path}}"
+      {% endif %}
+      echo ""
+      
+      # Output file paths for next step
+      echo "{\"blog_file\": \"$BLOG_FILE\", \"social_file\": \"$SOCIAL_FILE\", \"slug\": \"$SLUG\"}"
+    output: "file_paths"
+    parse_json: true
+    timeout: 60
+
+  # ==========================================================================
+  # Step 7: Finalization - Auto-open and Display Social Content
+  # ==========================================================================
+  - id: "finalize"
+    type: "bash"
+    command: |
+      BLOG_FILE="{{file_paths.blog_file}}"
+      SOCIAL_FILE="{{file_paths.social_file}}"
+      
+      # Verify files exist
+      if [ ! -f "$BLOG_FILE" ]; then
+        echo "❌ ERROR: Blog post not found at: $BLOG_FILE"
+        exit 1
+      fi
+      
+      # Auto-open blog post (platform-specific)
+      if [[ "$OSTYPE" == "darwin"* ]]; then
+        echo "🚀 Opening blog post..."
+        open "$BLOG_FILE"
+      elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
+        xdg-open "$BLOG_FILE" 2>/dev/null || echo "⚠️  Please open manually: $BLOG_FILE"
+      elif [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "cygwin" ]]; then
+        start "$BLOG_FILE"
+      fi
+      
+      echo ""
+      echo "═══════════════════════════════════════════════════════════════"
+      echo "📱 SOCIAL MEDIA CONTENT - Ready to Copy & Post"
+      echo "═══════════════════════════════════════════════════════════════"
+      echo ""
+      cat "$SOCIAL_FILE"
+      echo ""
+      echo "═══════════════════════════════════════════════════════════════"
+      echo ""
+      echo "📋 Next Steps:"
+      echo "   1. Review the blog post (now open in your editor)"
+      echo "   2. Make any edits needed"
+      echo "   3. Copy social media content from above"
+      echo "   4. Publish blog post"
+      echo "   5. Share on social media platforms"
+      echo ""
+      echo "📂 Files:"
+      echo "   - Blog: $BLOG_FILE"
+      echo "   - Social: $SOCIAL_FILE"
+      {% if include_technical_appendix %}echo "   - Technical: {{technical_appendix_path}}"
+      {% endif %}
+      echo ""
+    output: "completion_message"
+    timeout: 60
+
+# Output Summary
+# ==============
+# After execution, you'll have:
+#
+# - research_data: Complete feature data (JSON)
+# - content_plan: Content strategy and structure (JSON)
+# - blog_post: Complete blog post (Markdown)
+# - social_media: Social media content (Markdown)
+# - technical_appendix_path: Technical doc (Word, if requested)
+# - file_paths: Locations of all generated files
+#
+# All files are saved to workspace/blog/posts/ and optionally docs/blog/posts/
+# Blog post is auto-opened for immediate review
+# Social media content is displayed in terminal for easy copying

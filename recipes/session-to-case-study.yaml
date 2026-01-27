@@ -1,0 +1,297 @@
+name: "session-to-case-study"
+description: "Convert completed Amplifier session files into compelling case studies in Word format"
+version: "1.0.0"
+author: "amplifier-stories"
+tags: ["case-study", "documentation", "storytelling", "session-analysis"]
+
+# Recipe for automatically generating case studies from session data
+# Takes an events.jsonl file and produces a professional Word document
+#
+# Usage:
+#   amplifier run "execute session-to-case-study.yaml with session_file=~/.amplifier/sessions/2026-01-15/events.jsonl"
+#   amplifier run "execute session-to-case-study.yaml with session_file=./my-session.jsonl output_name=developer-automation-success"
+
+context:
+  session_file: ""  # Required: path to events.jsonl session file
+  output_name: ""   # Optional: custom filename (defaults to session-id)
+
+steps:
+  # ============================================
+  # PHASE 1: RESEARCH - Data Extraction
+  # ============================================
+  - id: "research"
+    agent: "story-researcher"
+    mode: "ANALYZE"
+    prompt: |
+      Analyze the Amplifier session file at: {{session_file}}
+      
+      Extract the following data for case study creation:
+      
+      **Session Metadata:**
+      - Session ID and duration (first to last event timestamp)
+      - Total number of events
+      - Agents used (unique agent names from task events)
+      - Tools called (unique tool names and frequency)
+      - Number of user prompts (iterations)
+      
+      **Key Moments:**
+      - Breakthrough points (look for long thinking times followed by success)
+      - Error resolutions (errors followed by fixes)
+      - Agent delegation patterns (which agents worked together)
+      - Complex problem-solving sequences
+      
+      **Metrics:**
+      - Tool call count (must be >10 for case study worthiness)
+      - Code generation indicators (write_file, edit_file calls)
+      - Files created or modified
+      - Problem complexity indicators (error count, iteration depth)
+      
+      **Outcome:**
+      - Final deliverable or result
+      - Success indicators from the session
+      - User satisfaction signals (if present in messages)
+      
+      Provide your analysis in structured JSON format with:
+      - session_metadata (id, duration, start_time, end_time)
+      - agents_used (list with usage counts)
+      - tools_called (list with counts)
+      - key_moments (timeline of important events)
+      - metrics (quantified data)
+      - outcome (final result description)
+      - quality_score (1-10 rating for case study potential)
+    output: "research_data"
+    timeout: 600
+  
+  # ============================================
+  # PHASE 2: STRATEGY - Story Planning
+  # ============================================
+  - id: "strategy"
+    agent: "content-strategist"
+    mode: "ANALYZE"
+    prompt: |
+      Review the research data from the session analysis:
+      
+      {{research_data}}
+      
+      **Your Task:**
+      1. Determine if this session is case-study worthy using these criteria:
+         - At least 10 tool calls (indicates substantive work)
+         - Successful outcome (not abandoned or failed)
+         - Interesting problem (not routine/trivial)
+         - Clear narrative potential (challenge → solution → results)
+      
+      2. If worthy, plan the narrative arc:
+         - What was the core challenge?
+         - What was the approach/solution?
+         - What were the results/benefits?
+         - Who is the target audience? (technical, mixed, or community)
+      
+      3. Identify key elements to highlight:
+         - Most impressive metrics
+         - Best agent collaboration examples
+         - Breakthrough moments to feature
+         - Technical details vs. high-level story balance
+      
+      **Output Format:**
+      Provide a JSON strategy with:
+      - worthy: true/false (is this case-study worthy?)
+      - reason: explanation of decision
+      - narrative_arc: {challenge, approach, results} descriptions
+      - target_audience: "technical" | "mixed" | "community"
+      - key_highlights: list of elements to feature
+      - estimated_word_count: target length
+      
+      If not worthy, explain why and suggest what would make it case-study material.
+    output: "strategy_plan"
+    timeout: 600
+  
+  # ============================================
+  # PHASE 3: WRITING - Case Study Generation
+  # ============================================
+  - id: "writing"
+    agent: "case-study-writer"
+    mode: "CREATE"
+    condition: "{{strategy_plan}} contains 'worthy: true' or {{strategy_plan}} contains 'worthy\":true'"
+    prompt: |
+      Create a compelling case study from this session data.
+      
+      **Research Data:**
+      {{research_data}}
+      
+      **Strategy Plan:**
+      {{strategy_plan}}
+      
+      **Your Task:**
+      Write a complete case study using Node.js to generate a Word document with the template at:
+      workspace/docx/templates/case-study-template.js
+      
+      **Structure:**
+      1. **Title**: Create an engaging title following the pattern:
+         "[User/Team] Uses Amplifier to [Achievement]"
+         (Example: "Developer Team Automates Documentation Pipeline in 2 Hours")
+      
+      2. **The Challenge** section:
+         - Describe the problem the user was solving
+         - Include technical context and constraints
+         - Explain why this was difficult or time-consuming
+         - Use metrics from research data
+      
+      3. **The Approach** section:
+         - Detail how they used Amplifier to solve it
+         - Highlight which agents were critical and why
+         - Describe key tool usage patterns
+         - Include breakthrough moments from the timeline
+         - Show the problem-solving journey
+      
+      4. **The Results** section:
+         - Quantify the outcome with specific metrics:
+           * Session duration (show efficiency)
+           * Files created/modified
+           * Tool calls (shows complexity handled)
+           * Before/after comparisons if applicable
+         - Describe the final deliverable
+         - Include any unexpected benefits
+      
+      5. **Key Takeaways** (3-5 bullets):
+         - Actionable patterns others can apply
+         - Best practices discovered
+         - When to use similar agent combinations
+         - Tips for replicating success
+      
+      **Writing Guidelines:**
+      - Target audience from strategy plan
+      - Tone: Professional yet engaging, evidence-based
+      - Use specific numbers and metrics throughout
+      - Include technical details but keep it readable
+      - Make it inspiring - show what's possible with Amplifier
+      
+      **Implementation:**
+      Create a Node.js script and execute it to generate the Word document:
+      
+      ```javascript
+      const { createCaseStudy } = require('./workspace/docx/templates/case-study-template.js');
+      const { Packer } = require('docx');
+      const fs = require('fs');
+      const path = require('path');
+      
+      const title = "[Your generated title here]";
+      const challenge = "[Your challenge section - 2-3 paragraphs]";
+      const approach = "[Your approach section - 3-4 paragraphs with specific details]";
+      const results = "[Your results section - 2-3 paragraphs with quantified metrics]";
+      
+      const doc = createCaseStudy(title, challenge, approach, results);
+      
+      // Determine output filename
+      const sessionFile = "{{session_file}}";
+      const outputName = "{{output_name}}";
+      const sessionId = sessionFile.match(/[^/]+(?=\.jsonl)/)?.[0] || "session";
+      const filename = outputName || `case-study-${sessionId}`;
+      const outputPath = path.join('workspace/docx/output', `${filename}.docx`);
+      
+      // Create output directory and save file
+      fs.mkdirSync('workspace/docx/output', { recursive: true });
+      
+      Packer.toBuffer(doc).then(buffer => {
+        fs.writeFileSync(outputPath, buffer);
+        console.log(`✅ Case study saved to: ${outputPath}`);
+      }).catch(err => {
+        console.error(`❌ Error generating case study: ${err.message}`);
+        process.exit(1);
+      });
+      ```
+      
+      Save this script to a temporary file and execute it with Node.js.
+      Output the final file path.
+    output: "generated_file_path"
+    timeout: 900
+  
+  # ============================================
+  # PHASE 4: FINALIZATION - Open Document
+  # ============================================
+  - id: "finalize"
+    type: "bash"
+    condition: "{{strategy_plan}} contains 'worthy: true' or {{strategy_plan}} contains 'worthy\":true'"
+    command: |
+      # Construct the file path
+      SESSION_FILE="{{session_file}}"
+      OUTPUT_NAME="{{output_name}}"
+      
+      # Extract session ID from file path
+      SESSION_ID=$(basename "$SESSION_FILE" .jsonl)
+      
+      # Determine output filename
+      if [ -n "$OUTPUT_NAME" ] && [ "$OUTPUT_NAME" != "null" ] && [ "$OUTPUT_NAME" != "" ]; then
+        FILE_PATH="workspace/docx/output/${OUTPUT_NAME}.docx"
+      else
+        FILE_PATH="workspace/docx/output/case-study-${SESSION_ID}.docx"
+      fi
+      
+      # Verify file exists
+      if [ ! -f "$FILE_PATH" ]; then
+        echo "❌ ERROR: Case study file not found at: $FILE_PATH"
+        echo "Expected location based on session file: $SESSION_FILE"
+        ls -la workspace/docx/output/ 2>/dev/null || echo "Output directory doesn't exist"
+        exit 1
+      fi
+      
+      # Get file size and show summary
+      FILE_SIZE=$(ls -lh "$FILE_PATH" | awk '{print $5}')
+      echo "✅ Case study generated successfully!"
+      echo "📄 File: $FILE_PATH"
+      echo "📊 Size: $FILE_SIZE"
+      echo ""
+      
+      # Auto-open in Word (platform-specific)
+      if [[ "$OSTYPE" == "darwin"* ]]; then
+        echo "🚀 Opening in Microsoft Word..."
+        open "$FILE_PATH"
+      elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
+        echo "🚀 Opening document..."
+        xdg-open "$FILE_PATH" 2>/dev/null || echo "⚠️  Please open manually: $FILE_PATH"
+      elif [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "cygwin" ]]; then
+        echo "🚀 Opening in Microsoft Word..."
+        start "$FILE_PATH"
+      else
+        echo "⚠️  Auto-open not supported on this OS."
+      fi
+      
+      echo ""
+      echo "📝 Next steps:"
+      echo "   1. Review the narrative structure"
+      echo "   2. Verify metrics accuracy"
+      echo "   3. Check technical details"
+      echo "   4. Edit key takeaways if needed"
+      echo "   5. Save and distribute!"
+      
+      echo "$FILE_PATH"
+    output: "final_path"
+    timeout: 60
+  
+  # ============================================
+  # ALTERNATE PATH: Not Worthy Notification
+  # ============================================
+  - id: "not-worthy-report"
+    type: "bash"
+    condition: "{{strategy_plan}} contains 'worthy: false' or {{strategy_plan}} contains 'worthy\":false'"
+    command: |
+      echo "ℹ️  Session Analysis Complete"
+      echo ""
+      echo "📊 This session was analyzed but does not meet case study criteria."
+      echo ""
+      echo "Strategy Assessment:"
+      echo "{{strategy_plan}}"
+      echo ""
+      echo "💡 Tip: Case-study worthy sessions typically have:"
+      echo "   • 10+ tool calls"
+      echo "   • Successful outcome"
+      echo "   • Interesting/complex problem"
+      echo "   • Clear narrative potential"
+    output: "not_worthy_message"
+    timeout: 30
+
+# Success criteria documentation
+# - Case study has clear Challenge/Approach/Results structure
+# - Metrics are quantified from actual session data
+# - Technical accuracy is maintained
+# - Document reads as compelling story, not just data
+# - File is generated and auto-opened for review

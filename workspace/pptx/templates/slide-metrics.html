@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+body {
+  width: 720pt;
+  height: 405pt;
+  margin: 0;
+  padding: 60pt 80pt;
+  font-family: Arial, sans-serif;
+  background: #000000;
+  color: #FFFFFF;
+  text-align: center;
+}
+
+h2 {
+  font-size: 48pt;
+  font-weight: 600;
+  color: #FFFFFF;
+  line-height: 1.2;
+  letter-spacing: -1px;
+  margin: 0 0 60pt 0;
+}
+
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 40pt;
+  margin-top: 40pt;
+}
+
+.metric {
+  text-align: center;
+}
+
+.metric-number {
+  font-size: 72pt;
+  font-weight: 700;
+  background: linear-gradient(135deg, #0A84FF, #5E5CE6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  line-height: 1;
+  margin-bottom: 12pt;
+}
+
+.metric-label {
+  font-size: 18pt;
+  color: rgba(255,255,255,0.7);
+}
+</style>
+</head>
+<body>
+  <h2>Impact Metrics</h2>
+  <div class="metrics-grid">
+    <div class="metric">
+      <p class="metric-number">150</p>
+      <p class="metric-label">Metric One</p>
+    </div>
+    <div class="metric">
+      <p class="metric-number">2.3x</p>
+      <p class="metric-label">Metric Two</p>
+    </div>
+    <div class="metric">
+      <p class="metric-number">87%</p>
+      <p class="metric-label">Metric Three</p>
+    </div>
+  </div>
+</body>
+</html>

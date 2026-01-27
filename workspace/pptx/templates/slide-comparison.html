@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+body {
+  width: 720pt;
+  height: 405pt;
+  margin: 0;
+  padding: 60pt 80pt;
+  font-family: Arial, sans-serif;
+  background: #000000;
+  color: #FFFFFF;
+}
+
+h2 {
+  font-size: 48pt;
+  font-weight: 600;
+  color: #FFFFFF;
+  line-height: 1.2;
+  letter-spacing: -1px;
+  margin: 0 0 40pt 0;
+}
+
+.split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40pt;
+}
+
+.column {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 16px;
+  padding: 32pt;
+}
+
+.column-title {
+  font-size: 20pt;
+  font-weight: 600;
+  color: #0A84FF;
+  margin-bottom: 20pt;
+}
+
+ul {
+  font-size: 20pt;
+  line-height: 1.6;
+  margin: 0;
+  padding-left: 30pt;
+  list-style: disc;
+}
+
+li {
+  margin-bottom: 12pt;
+}
+</style>
+</head>
+<body>
+  <h2>Before vs After</h2>
+  <div class="split">
+    <div class="column">
+      <p class="column-title">Before</p>
+      <ul>
+        <li>Point one</li>
+        <li>Point two</li>
+        <li>Point three</li>
+      </ul>
+    </div>
+    <div class="column">
+      <p class="column-title">After</p>
+      <ul>
+        <li>Improvement one</li>
+        <li>Improvement two</li>
+        <li>Improvement three</li>
+      </ul>
+    </div>
+  </div>
+</body>
+</html>
