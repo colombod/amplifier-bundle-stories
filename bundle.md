@@ -6,7 +6,7 @@ bundle:
 
 includes:
   - bundle: git+https://github.com/microsoft/amplifier-foundation@main
-  - bundle: stories:behaviors/storyteller
+  - bundle: stories:behaviors/stories
 ---
 
 # Storyteller Bundle
