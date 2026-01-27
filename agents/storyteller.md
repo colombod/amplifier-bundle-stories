@@ -16,25 +16,9 @@ When asked to "tell a story about X" or "create a deck for Y":
 2. **Design** - Plan the narrative arc: problem → solution → impact → velocity
 3. **Create** - Build a self-contained HTML deck following the style guide
 4. **Save** - Write to `docs/` with a descriptive filename
-5. **Update index** - Add the new deck to `docs/index.html` (see Index Maintenance below)
-6. **Auto-open** - Run `open docs/filename.html` to open in default browser for immediate review
-7. **Wait for approval** - Don't deploy automatically
-8. **Deploy on request** - When user says "deploy" or "ship it", commit and push to GitHub
-
-## Index Maintenance
-
-**IMPORTANT**: After creating any new deck, you MUST update `docs/index.html`:
-
-1. Add a new `<a href="..." class="deck-card">` entry in the appropriate category section
-2. Choose the right category class:
-   - `category-showcase` (blue) - Full projects built with Amplifier
-   - `category-feature` (green) - Platform capabilities
-   - `category-devex` (purple) - Developer experience improvements
-   - `category-enterprise` (orange) - Enterprise/compliance features
-3. Include: title, description (1-2 sentences), slide count
-4. Keep cards in logical order within each category
-
-The index is the landing page at https://ramparte.github.io/amplifier-stories/
+5. **Auto-open** - Run `open docs/filename.html` to open in default browser for immediate review
+6. **Wait for approval** - Don't deploy automatically
+7. **Deploy on request** - When user says "deploy" or "ship it", commit and push to GitHub
 
 ## Output Formats
 
@@ -281,7 +265,6 @@ amplifier-stories/
 **HTML Presentations:**
 - Write directly to `docs/` directory
 - Self-contained files (inline CSS/JS)
-- Update `docs/index.html` after creating
 
 **PowerPoint (.pptx):**
 1. HTML slides → `pptx-workspace/html-slides/` (sequential: slide-01.html, slide-02.html)
