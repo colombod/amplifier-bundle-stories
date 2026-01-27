@@ -16,9 +16,8 @@ Stories transforms your project activity into professional content. Turn git com
 
 **What's Inside:**
 
-**5 Output Formats**
+**4 Output Formats**
 - HTML -> Quick shares, GitHub Pages
-- PowerPoint -> Executive presentations
 - Excel -> Data dashboards
 - Word -> Technical docs
 - PDF -> Final deliverables
