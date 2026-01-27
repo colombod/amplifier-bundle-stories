@@ -61,18 +61,18 @@ When a git tag is created, automatically generate:
 
 **Structure:**
 ```markdown
-## 🚀 Highlights
+##  Highlights
 
 **Feature Name** - One-line impact statement
 
 Brief description of the most important changes.
 
-## 📦 What's New
+##  What's New
 
 - **Feature A** ([#PR](link)): Description
 - **Feature B** ([#PR](link)): Description
 
-## 🐛 Bug Fixes
+##  Bug Fixes
 
 - **Fix A** ([#PR](link)): What was fixed
 - **Fix B** ([#PR](link)): Impact
@@ -82,17 +82,17 @@ Brief description of the most important changes.
 - **Improvement A**: Percentage improvement
 - **Improvement B**: Time savings
 
-## 🔧 Installation
+##  Installation
 
 \`\`\`bash
 uv tool install git+https://github.com/microsoft/amplifier@v2.0.0
 \`\`\`
 
-## 📝 Migration Guide
+##  Migration Guide
 
 For breaking changes, see MIGRATION.md
 
-## 🙏 Contributors
+##  Contributors
 
 Special thanks to @user1, @user2, @user3
 ```

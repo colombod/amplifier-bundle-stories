@@ -278,7 +278,7 @@ steps:
           "call_to_action": "Try it today with: amplifier [command]"
         },
         "social_media": {
-          "twitter_hook": "🚀 Just shipped: [feature] - [benefit in <280 chars]",
+          "twitter_hook": " Just shipped: [feature] - [benefit in <280 chars]",
           "linkedin_angle": "Professional angle focusing on productivity/ROI",
           "discord_hook": "Community-focused excitement about capability"
         },
@@ -433,7 +433,7 @@ steps:
       
       **Format:**
       ```
-      1/ 🚀 [Hook - why this matters]
+      1/  [Hook - why this matters]
       
       2/ The problem: [Relatable pain point]
       
@@ -455,7 +455,7 @@ steps:
       
       **Guidelines:**
       - Each tweet max 280 characters
-      - Use emojis sparingly but effectively
+      - Do not use emojis (encoding issues)
       - Include code example in thread
       - Make thread valuable standalone
       
@@ -463,7 +463,7 @@ steps:
       
       **Format:**
       ```
-      I'm excited to share [feature] in Amplifier 🎉
+      I'm excited to share [feature] in Amplifier 
       
       [Opening: What it is and why it matters for productivity/ROI]
       
@@ -495,7 +495,7 @@ steps:
       
       **Format:**
       ```
-      🚀 **New Feature: [Feature Name]**
+       **New Feature: [Feature Name]**
       
       **TL;DR:** [One-line summary of benefit]
       
@@ -700,7 +700,7 @@ steps:
       echo ""
       echo "✅ Blog post generation complete!"
       echo ""
-      echo "📝 Files created:"
+      echo " Files created:"
       echo "   - Blog post: $BLOG_FILE"
       echo "   - Social media: $SOCIAL_FILE"
       {% if include_technical_appendix %}echo "   - Technical appendix: {{technical_appendix_path}}"
@@ -730,7 +730,7 @@ steps:
       
       # Auto-open blog post (platform-specific)
       if [[ "$OSTYPE" == "darwin"* ]]; then
-        echo "🚀 Opening blog post..."
+        echo " Opening blog post..."
         open "$BLOG_FILE"
       elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
         xdg-open "$BLOG_FILE" 2>/dev/null || echo "⚠️  Please open manually: $BLOG_FILE"
@@ -740,21 +740,21 @@ steps:
       
       echo ""
       echo "═══════════════════════════════════════════════════════════════"
-      echo "📱 SOCIAL MEDIA CONTENT - Ready to Copy & Post"
+      echo " SOCIAL MEDIA CONTENT - Ready to Copy & Post"
       echo "═══════════════════════════════════════════════════════════════"
       echo ""
       cat "$SOCIAL_FILE"
       echo ""
       echo "═══════════════════════════════════════════════════════════════"
       echo ""
-      echo "📋 Next Steps:"
+      echo " Next Steps:"
       echo "   1. Review the blog post (now open in your editor)"
       echo "   2. Make any edits needed"
       echo "   3. Copy social media content from above"
       echo "   4. Publish blog post"
       echo "   5. Share on social media platforms"
       echo ""
-      echo "📂 Files:"
+      echo " Files:"
       echo "   - Blog: $BLOG_FILE"
       echo "   - Social: $SOCIAL_FILE"
       {% if include_technical_appendix %}echo "   - Technical: {{technical_appendix_path}}"

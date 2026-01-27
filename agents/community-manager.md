@@ -52,7 +52,7 @@ tags: [community, showcase]
 
 **Social Media Version:**
 ```
-🌟 Community Spotlight: @user built [project] with Amplifier!
+ Community Spotlight: @user built [project] with Amplifier!
 
 [Brief description of achievement]
 
@@ -78,7 +78,7 @@ Check it out: [link]
 
 **Example:**
 ```markdown
-# This Week in Amplifier 🚀
+# This Week in Amplifier 
 
 ## Community Wins
 - @user1 created an amazing MCP server integration
@@ -94,7 +94,7 @@ Check it out: [link]
 - 12 new contributors this week
 - 450 sessions created
 
-Keep building amazing things! 💙
+Keep building amazing things! 
 ```
 
 ### 3. Contributor Recognition
@@ -109,19 +109,19 @@ Keep building amazing things! 💙
 
 **Examples:**
 ```markdown
-🎉 First contribution from @newuser!
+ First contribution from @newuser!
 
 Thanks for the [contribution description]. Welcome to the community!
 
 ---
 
-🏆 Shoutout to @veteran for [specific help]
+ Shoutout to @veteran for [specific help]
 
 [What they did and why it mattered]
 
 ---
 
-💡 Creative use case: @user used Amplifier to [unexpected application]
+ Creative use case: @user used Amplifier to [unexpected application]
 
 [Description and why it's interesting]
 ```
@@ -189,18 +189,18 @@ gh api repos/microsoft/amplifier/contributors
 
 ### First Contribution
 ```markdown
-🎉 Welcome @newuser to the Amplifier community!
+ Welcome @newuser to the Amplifier community!
 
 Their first contribution: [PR title]
 
 [Brief description of what it does]
 
-Thank you for helping make Amplifier better! 🙏
+Thank you for helping make Amplifier better! 
 ```
 
 ### Significant Contribution
 ```markdown
-🌟 Huge thanks to @contributor!
+ Huge thanks to @contributor!
 
 [Specific impact of their work]
 
@@ -211,7 +211,7 @@ This is their [number]th contribution - consistently making Amplifier better.
 
 ### Creative Application
 ```markdown
-💡 Brilliant use of Amplifier by @user!
+ Brilliant use of Amplifier by @user!
 
 They built [project] using [specific capabilities]
 

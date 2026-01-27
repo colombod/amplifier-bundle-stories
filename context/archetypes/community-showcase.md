@@ -88,7 +88,7 @@ Want to build something similar? Start with foundation:zen-architect and securit
 ### For Social Media
 **Twitter Thread:**
 ```
-1/ 🌟 Community Spotlight: @user built [project] with Amplifier!
+1/  Community Spotlight: @user built [project] with Amplifier!
 
 2/ The challenge: [brief problem]
 
@@ -103,7 +103,7 @@ Want to build something similar? Start with foundation:zen-architect and securit
 
 **LinkedIn:**
 ```
-I'm excited to spotlight [User] and their [Project] built with Amplifier! 🚀
+I'm excited to spotlight [User] and their [Project] built with Amplifier! 
 
 [Brief description of what they built]
 

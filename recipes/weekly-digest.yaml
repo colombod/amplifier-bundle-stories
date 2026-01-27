@@ -241,13 +241,13 @@ steps:
          - Engaging headline with date range
          - Opening paragraph that hooks readers
          - Sections as recommended in content brief (typically):
-           * 🌟 Highlights - Top 3-5 stories
-           * 🚀 New Features & Releases - Technical updates
-           * 💬 Community - Contributions, discussions, new members
-           * 📊 By The Numbers - Key metrics and statistics
-           * 🔮 What's Next - Preview of upcoming work
+           * Highlights - Top 3-5 stories
+           * New Features & Releases - Technical updates
+           * Community - Contributions, discussions, new members
+           * By The Numbers - Key metrics and statistics
+           * What's Next - Preview of upcoming work
          - Closing thought/call-to-action
-         - Format: Markdown with emojis, headers, links, code blocks where appropriate
+         - Format: Markdown with headers, links, code blocks where appropriate (no emojis)
          - Length: 800-1200 words (readable in 5-7 minutes)
       
       2. **Email Version** - Condensed for newsletter
@@ -264,7 +264,7 @@ steps:
       **Tone & Style:**
       - Friendly and conversational but professional
       - Celebrate achievements and contributors by name
-      - Use emojis sparingly for section markers
+      - Use plain text markers for sections (no emojis)
       - Link generously to PRs, issues, repos, contributors
       - Balance technical accuracy with accessibility
       
@@ -331,17 +331,17 @@ steps:
       
       # Print distribution summary
       echo ""
-      echo "📬 DISTRIBUTION CHECKLIST"
+      echo " DISTRIBUTION CHECKLIST"
       echo "========================="
       echo ""
       echo "✅ Digest generated: $DIGEST_FILE"
       echo ""
-      echo "📝 Publishing Options:"
+      echo " Publishing Options:"
       echo "   • GitHub Pages: commit docs/blog/weekly-digest-*.md"
       echo "   • Newsletter: use the Email Version section"
       echo "   • Social Media: use the Social Media Snippets section"
       echo ""
-      echo "🔗 Next Steps:"
+      echo " Next Steps:"
       echo "   1. Review the digest (should be open in your editor)"
       echo "   2. Edit any sections as needed"
       echo "   3. Commit to GitHub: git add docs/blog && git commit -m 'Add weekly digest'"

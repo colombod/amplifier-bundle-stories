@@ -237,26 +237,26 @@ steps:
       # Get file size and show summary
       FILE_SIZE=$(ls -lh "$FILE_PATH" | awk '{print $5}')
       echo "✅ Case study generated successfully!"
-      echo "📄 File: $FILE_PATH"
-      echo "📊 Size: $FILE_SIZE"
+      echo " File: $FILE_PATH"
+      echo " Size: $FILE_SIZE"
       echo ""
       
       # Auto-open in Word (platform-specific)
       if [[ "$OSTYPE" == "darwin"* ]]; then
-        echo "🚀 Opening in Microsoft Word..."
+        echo " Opening in Microsoft Word..."
         open "$FILE_PATH"
       elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
-        echo "🚀 Opening document..."
+        echo " Opening document..."
         xdg-open "$FILE_PATH" 2>/dev/null || echo "⚠️  Please open manually: $FILE_PATH"
       elif [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "cygwin" ]]; then
-        echo "🚀 Opening in Microsoft Word..."
+        echo " Opening in Microsoft Word..."
         start "$FILE_PATH"
       else
         echo "⚠️  Auto-open not supported on this OS."
       fi
       
       echo ""
-      echo "📝 Next steps:"
+      echo " Next steps:"
       echo "   1. Review the narrative structure"
       echo "   2. Verify metrics accuracy"
       echo "   3. Check technical details"
@@ -276,12 +276,12 @@ steps:
     command: |
       echo "ℹ️  Session Analysis Complete"
       echo ""
-      echo "📊 This session was analyzed but does not meet case study criteria."
+      echo " This session was analyzed but does not meet case study criteria."
       echo ""
       echo "Strategy Assessment:"
       echo "{{strategy_plan}}"
       echo ""
-      echo "💡 Tip: Case-study worthy sessions typically have:"
+      echo " Tip: Case-study worthy sessions typically have:"
       echo "   • 10+ tool calls"
       echo "   • Successful outcome"
       echo "   • Interesting/complex problem"

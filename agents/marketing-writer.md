@@ -58,7 +58,7 @@ Future possibilities, community involvement.
 
 **Twitter Thread:**
 ```
-1/ 🚀 Big news: [Feature] just landed in Amplifier
+1/  Big news: [Feature] just landed in Amplifier
 
 [Brief hook explaining the win]
 
@@ -75,7 +75,7 @@ Future possibilities, community involvement.
 
 **LinkedIn Post:**
 ```
-I'm excited to share [Feature] in Amplifier 🎉
+I'm excited to share [Feature] in Amplifier 
 
 [Opening paragraph: What it is and why it matters]
 

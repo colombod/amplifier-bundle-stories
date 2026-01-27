@@ -8,17 +8,17 @@
 
 ## Thread
 
-**1/9** 🧵
+**1/9**
 
 What if creating a polished PowerPoint, case study, or project digest took seconds instead of hours?
 
-Introducing **amplifier-bundle-stories** — your AI content team in a bundle.
+Introducing **amplifier-bundle-stories** - your AI content team in a bundle.
 
-Let me show you what it does 👇
+Let me show you what it does:
 
 ---
 
-**2/9** 😩 The problem we all know:
+**2/9** The problem we all know:
 
 You ship something amazing. Now you need:
 - A deck for leadership
@@ -30,33 +30,33 @@ Each takes hours. Time you'd rather spend building.
 
 ---
 
-**3/9** 💡 The solution: 11 specialist AI agents
+**3/9** The solution: 11 specialist AI agents
 
-• Storyteller → HTML presentations
-• Technical Writer → documentation
-• Marketing Writer → blog posts
-• Executive Briefer → summaries
-• Case Study Writer → narratives
-• Release Manager → changelogs
-• Data Analyst → dashboards
+- Storyteller -> HTML presentations
+- Technical Writer -> documentation
+- Marketing Writer -> blog posts
+- Executive Briefer -> summaries
+- Case Study Writer -> narratives
+- Release Manager -> changelogs
+- Data Analyst -> dashboards
 
 ...and more!
 
 ---
 
-**4/9** 📄 Five formats, one workflow:
+**4/9** Five formats, one workflow:
 
-✅ HTML — shareable web presentations
-✅ PowerPoint — professional .pptx files
-✅ Excel — data dashboards
-✅ Word — technical docs
-✅ PDF — executive one-pagers
+[x] HTML - shareable web presentations
+[x] PowerPoint - professional .pptx files
+[x] Excel - data dashboards
+[x] Word - technical docs
+[x] PDF - executive one-pagers
 
 Just ask in plain language. Done.
 
 ---
 
-**5/9** 🗣️ It's as simple as:
+**5/9** It's as simple as:
 
 "Create a PowerPoint about our new auth system"
 
@@ -68,18 +68,18 @@ No templates. No formatting struggles. Just results.
 
 ---
 
-**6/9** 🤖 The real magic? Four automated recipes:
+**6/9** The real magic? Four automated recipes:
 
-• session-to-case-study
-• git-tag-to-changelog
-• weekly-digest
-• blog-post-generator
+- session-to-case-study
+- git-tag-to-changelog
+- weekly-digest
+- blog-post-generator
 
 Your commits and PRs become professional content automatically.
 
 ---
 
-**7/9** ⚡ Get started in 30 seconds:
+**7/9** Get started in 30 seconds:
 
 ```
 amplifier bundle add git+https://github.com/microsoft/amplifier-bundle-stories@main
@@ -91,7 +91,7 @@ That's it. You're ready.
 
 ---
 
-**8/9** 🚀 Then just ask:
+**8/9** Then just ask:
 
 "Create a presentation about [your feature]"
 "Run the weekly digest recipe"
@@ -101,20 +101,19 @@ No more blank page anxiety. Your work tells its own story.
 
 ---
 
-**9/9** 🎯 Try it today:
+**9/9** Try it today:
 
 `amplifier bundle add git+https://github.com/microsoft/amplifier-bundle-stories@main`
 
 Your next presentation is one prompt away.
 
-What will you create first? 👇
+What will you create first?
 
 ---
 
 ## Thread Notes
 
 - **Hook:** Opens with value proposition and curiosity
-- **Flow:** Problem → Solution → Features → How-to → CTA
-- **Emojis:** Used strategically for visual breaks and emphasis
+- **Flow:** Problem -> Solution -> Features -> How-to -> CTA
 - **CTA:** Ends with installation command and engagement question
 - **Length:** All tweets under 280 characters when rendered as plain text

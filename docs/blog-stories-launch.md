@@ -13,7 +13,7 @@ What if creating a polished PowerPoint, a detailed case study, or a weekly proje
 
 You've just shipped something amazing. Maybe it's a new feature, a successful refactor, or a project milestone worth celebrating. Now comes the hard part: telling the story.
 
-You need a presentation for leadership. A blog post for the community. Release notes for users. A case study for the sales team. Each one takes time—time you'd rather spend building the next thing.
+You need a presentation for leadership. A blog post for the community. Release notes for users. A case study for the sales team. Each one takes time - time you'd rather spend building the next thing.
 
 Sound familiar?
 
@@ -38,11 +38,11 @@ Need a PowerPoint for that executive meeting? Done. Want an Excel dashboard trac
 
 The Stories bundle supports:
 
-- **HTML** — Clean, shareable web presentations
-- **PowerPoint** — Professional .pptx files with corporate styling
-- **Excel** — Data dashboards and metrics tracking
-- **Word** — Technical documentation and proposals
-- **PDF** — Executive one-pagers and final deliverables
+- **HTML** - Clean, shareable web presentations
+- **PowerPoint** - Professional .pptx files with corporate styling
+- **Excel** - Data dashboards and metrics tracking
+- **Word** - Technical documentation and proposals
+- **PDF** - Executive one-pagers and final deliverables
 
 Just ask for what you need in plain language:
 
@@ -56,10 +56,10 @@ Just ask for what you need in plain language:
 
 The real magic? **Four automated recipes** that generate content from your existing work:
 
-- **session-to-case-study** — Turn any Amplifier session into a shareable success story
-- **git-tag-to-changelog** — Generate release notes automatically from git tags
-- **weekly-digest** — Regular project updates with zero manual effort
-- **blog-post-generator** — Feature stories pulled directly from git activity
+- **session-to-case-study** - Turn any Amplifier session into a shareable success story
+- **git-tag-to-changelog** - Generate release notes automatically from git tags
+- **weekly-digest** - Regular project updates with zero manual effort
+- **blog-post-generator** - Feature stories pulled directly from git activity
 
 No more staring at a blank page. Your code commits, PRs, and Amplifier sessions become the raw material for professional content.
 

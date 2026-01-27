@@ -498,7 +498,7 @@ steps:
       Create engaging, scannable release notes:
       
       ```markdown
-      # 🚀 Release {{tag_info.current_version}}
+      #  Release {{tag_info.current_version}}
       
       [Opening paragraph: What's the big picture? Why this release matters?]
       
@@ -519,7 +519,7 @@ steps:
       [Link to full migration guide if complex]
       {% endif %}
       
-      ## 📦 What's Changed
+      ##  What's Changed
       
       ### Added
       - Feature descriptions (link to PR/commit)
@@ -530,12 +530,12 @@ steps:
       ### Changed
       - Improvements and changes
       
-      ## 👥 Contributors
+      ##  Contributors
       
       Thank you to all {{commit_history.contributor_count}} contributors!
       {{commit_history.contributors}}
       
-      ## 📊 Stats
+      ##  Stats
       
       - {{commit_history.commit_count}} commits
       - {{commit_history.files_changed}}
@@ -548,7 +548,7 @@ steps:
       
       1. **Lead with impact**: What can users do now?
       2. **Highlight breaking changes prominently**
-      3. **Use emojis sparingly** for visual scanning
+      3. **Use plain text** for visual scanning (no emojis)
       4. **Link to PRs and commits** for details
       5. **Credit contributors** by name
       6. **Keep it engaging** but professional
@@ -783,7 +783,7 @@ steps:
       Return JSON:
       ```json
       {
-        "twitter": "🚀 [Project] v{{tag_info.current_version}} is here! ...",
+        "twitter": " [Project] v{{tag_info.current_version}} is here! ...",
         "linkedin": "Excited to announce [Project] {{tag_info.current_version}}...",
         "mastodon": "New release! [Project] {{tag_info.current_version}}...",
         "hashtags": ["#release", "#opensource", "#development"]
@@ -969,7 +969,7 @@ steps:
       
       # Create PR
       pr_url=$(gh pr create \
-        --title "📝 Release documentation for ${tag_name}" \
+        --title " Release documentation for ${tag_name}" \
         --body "## Release Documentation for ${tag_name}
 
       This PR adds complete release documentation for ${tag_name}.

@@ -40,7 +40,7 @@ Multi-channel announcement for software releases, optimized for different platfo
 
 **Format:**
 ```markdown
-## 🚀 What's New
+##  What's New
 
 **Shadow Environments** - Test local changes safely
 Test uncommitted code in isolated containers before pushing. Zero production incidents.
@@ -62,7 +62,7 @@ Spawn child sessions with configuration overlays for efficient parallelism.
 
 **Example:**
 ```markdown
-## 📦 Installation
+##  Installation
 
 \`\`\`bash
 # New installation
@@ -84,7 +84,7 @@ amplifier update
 
 **Example:**
 ```markdown
-## 🔮 What's Next
+##  What's Next
 
 Coming in 2.1:
 • Real-time collaboration between sessions
@@ -96,7 +96,7 @@ Want to contribute? We're looking for:
 • Module developers
 • Documentation writers
 
-## 🙏 Thank You
+##  Thank You
 
 Special thanks to our contributors: @user1, @user2, @user3
 
@@ -116,27 +116,27 @@ And to everyone who filed issues, tested features, and shared feedback.
 
 ### GitHub Release Notes
 **Length:** 500-800 words  
-**Format:** Markdown with sections and emoji  
+**Format:** Markdown with sections (no emojis)  
 **Tone:** Professional, detailed, includes technical info
 
 ```markdown
-## 🚀 Amplifier 2.0.0
+##  Amplifier 2.0.0
 
 Autonomous storytelling engine with multi-format content generation.
 
-### ✨ Highlights
+###  Highlights
 - 10 specialist agents for content creation
 - 4 automated workflow recipes
 - Professional templates for all formats
 - Black background Keynote aesthetic
 
-### 📦 What's Included
+###  What's Included
 [Detailed changelog-style list]
 
-### ⚠️ Breaking Changes
+###  Breaking Changes
 [List with migration paths]
 
-### 📝 Full Changelog
+###  Full Changelog
 See [CHANGELOG.md](CHANGELOG.md) for complete details.
 ```
 
@@ -177,52 +177,52 @@ tags: [release, announcement]
 
 **Twitter/X Thread (8-12 tweets):**
 ```
-1/ 🚀 Amplifier 2.0 is here!
+1/  Amplifier 2.0 is here!
 
 Autonomous storytelling, 10 specialist agents, 4 automated workflows.
 
 Everything you need to tell your development story - automatically.
 
-2/ What's new? A LOT. 🧵
+2/ What's new? A LOT.
 
-3/ 📊 Multi-Format Generation
+3/  Multi-Format Generation
 Create presentations, docs, dashboards, and reports - all with consistent professional styling.
 
 PowerPoint, Excel, Word, PDF, and HTML. One story, five formats.
 
-4/ 🤖 10 Specialist Agents
+4/  10 Specialist Agents
 - story-researcher: Automated data gathering
 - content-strategist: Story planning
 - technical-writer: Deep docs
 - marketing-writer: Community content
 [continue for all 10]
 
-5/ ⚡ Automated Workflows
+5/  Automated Workflows
 • Session → Case Study (in minutes)
 • Git Tag → Complete Release Docs
 • Weekly Ecosystem Digest (zero manual work)
 • Blog Post Generator (from any feature)
 
-6/ 📦 Getting Started
+6/  Getting Started
 
 \`\`\`
 uv tool install git+https://github.com/microsoft/amplifier@v2.0.0
 \`\`\`
 
-7/ 🔗 Resources
+7/  Resources
 - Release Notes: [link]
 - Migration Guide: [link]
 - Examples: [link]
 
-8/ 🙏 Thank You
+8/  Thank You
 To our amazing contributors and everyone who shared feedback.
 
-This release is for you. Build something awesome! 💙
+This release is for you. Build something awesome! 
 ```
 
 **LinkedIn Post:**
 ```
-I'm thrilled to announce Amplifier 2.0 🎉
+I'm thrilled to announce Amplifier 2.0 
 
 After months of development, we're releasing an autonomous storytelling engine that transforms how you document and share your AI development work.
 
@@ -247,7 +247,7 @@ Ready to try it? [link to installation]
 
 **Discord/Teams Announcement:**
 ```markdown
-@everyone 🚀 Amplifier 2.0 is live!
+@everyone  Amplifier 2.0 is live!
 
 **TL;DR:** Autonomous storytelling engine with 10 specialist agents and 4 automated workflows.
 
