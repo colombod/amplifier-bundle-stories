@@ -200,11 +200,16 @@ updateNav();
     <div class="section-label">Usage</div>
     <h2 class="medium-headline">How to use it</h2>
     <div class="code-block">
-<span class="code-comment"># Comment</span>
-command --flag value
+        <pre><code><span class="comment"># Comment</span>
+<span class="command">command</span> --flag value
+
+<span class="comment"># Another section</span>
+<span class="command">another-command</span> <span class="string">"argument"</span></code></pre>
     </div>
 </div>
 ```
+
+**CRITICAL: Code blocks MUST use `<pre><code>` wrapper** to preserve line breaks. Without `<pre>`, all lines will run together as a single line. The `<pre>` tag preserves whitespace and newlines.
 
 **Velocity Slide:**
 ```html
@@ -230,7 +235,8 @@ Before presenting to user:
 - [ ] **No content clipping on mobile (test at 320px viewport)**
 - [ ] **Slides use `overflow-y: auto` (not clipping tall content)**
 - [ ] **`justify-content: center` only on `.slide.center` classes**
-- [ ] Code blocks don't overflow (use `pre-wrap`)
+- [ ] Code blocks use `<pre><code>` wrapper (NOT just `<code>` - lines will run together!)
+- [ ] Code blocks don't overflow (use `pre-wrap` if needed)
 - [ ] Consistent color scheme throughout
 - [ ] Velocity slide has accurate numbers
 - [ ] All links are correct
