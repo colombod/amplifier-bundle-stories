@@ -270,25 +270,72 @@ Before presenting to user:
 
 You can convert the HTML deck to an MP4 video using the `tools/html2video.py` tool. This supports optional AI voice-over.
 
-**Workflow:**
-1. **Create HTML deck** with optional speaker notes for narration:
-   ```html
-   <div class="slide">
-       <h1>Slide Title</h1>
-       <aside class="notes">
-           This text will be spoken by the AI voice-over.
-       </aside>
-   </div>
-   ```
+**For detailed best practices, see `context/video-presentation-guidelines.md`.**
 
-2. **Run conversion tool**:
-   ```bash
-   # Without voice-over (silent)
-   uv run --with playwright tools/html2video.py docs/deck.html docs/deck.mp4
+### Video-Optimized Slide Design
 
-   # With voice-over (requires edge-tts)
-   uv run --with playwright --with edge-tts tools/html2video.py docs/deck.html docs/deck.mp4 --voice en-US-AriaNeural
-   ```
+When creating decks intended for video:
 
-3. **Validate output**: Check video timing and audio sync.
+1. **Use 70%+ of viewport space** - Video is often viewed on large screens or from a distance
+2. **Scale up typography** - Headlines 48-140px, body text 18-28px minimum
+3. **Use Problem → Solution pattern** - "How do you...?" followed by "And now you can..."
+4. **Keep animations simple** - Under 0.5s duration, use `animation-fill-mode: forwards`
+
+### Speaker Notes for Voice-Over
+
+```html
+<div class="slide">
+    <h1>Slide Title</h1>
+    <div class="notes">
+        Write conversationally, as if speaking to someone.
+        Aim for 50-80 words per slide (5-8 seconds of speech).
+        Match tone to content - dramatic for reveals, calm for data.
+    </div>
+</div>
+```
+
+### Slide Timing Strategy
+
+Different slides need different durations:
+
+| Slide Type | Duration | 
+|------------|----------|
+| Title slide | 4-5 seconds |
+| Reveal slides ("And now you can...") | 5 seconds |
+| Content-heavy (grids, multi-card) | 5-6 seconds |
+| Standard content | 3 seconds |
+| Final slide | 5 seconds |
+
+### Recording Workflow
+
+```bash
+# Quick preview (silent, small)
+uv run --with playwright tools/html2video.py docs/deck.html docs/preview.mp4 \
+    --min-duration 2 --width 640 --height 360
+
+# Standard recording with voice-over
+uv run --with playwright --with edge-tts tools/html2video.py docs/deck.html docs/deck.mp4 \
+    --min-duration 3 --voice en-US-AriaNeural
+
+# High-quality with British voice
+uv run --with playwright --with edge-tts tools/html2video.py docs/deck.html docs/deck.mp4 \
+    --min-duration 4 --width 1920 --height 1080 --voice en-GB-SoniaNeural
+```
+
+### Pre-Recording Checklist
+
+Before running the video tool:
+- [ ] Content accuracy verified (dates, names, numbers)
+- [ ] Each slide uses 70%+ of viewport
+- [ ] No overflow on any slide
+- [ ] Animations complete within slide duration
+- [ ] Speaker notes are conversational (if using voice-over)
+
+### Post-Recording
+
+For universal compatibility (Teams, Slack, LinkedIn), convert WebM to MP4:
+```bash
+ffmpeg -i presentation.webm -c:v libx264 -crf 23 -c:a aac presentation.mp4
+```
+
 4. **Deploy**: Commit .mp4 to `docs/`.
