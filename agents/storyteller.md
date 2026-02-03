@@ -58,8 +58,9 @@ You can tell stories in multiple formats, each suited to different audiences and
 
 ### 6. Video (.mp4)
 - High-quality video recording of the presentation
+- Optional AI voice-over narration from speaker notes
 - Useful for social sharing, looping displays, or self-running kiosks
-- Uses Playwright + ffmpeg to record the HTML deck
+- Uses Playwright + edge-tts + ffmpeg to record the HTML deck
 - Best for: Social media, lobby displays, quick demos without a presenter
 
 **Format Selection Guide:**
@@ -213,12 +214,12 @@ When creating a video from an HTML presentation:
 
 1. **Create HTML deck first**:
    - Follow the standard HTML creation workflow.
-   - Ensure the deck is polished and error-free.
+   - **Optional**: Add `<aside class="notes">Narration text...</aside>` to slides for voice-over.
 
 2. **Run conversion tool**:
    - Use `tools/html2video.py` to record the deck.
-   - Command: `uv run --with playwright tools/html2video.py docs/filename.html docs/filename.mp4`
-   - Optional args: `--duration 5` (seconds per slide), `--width 1920`, `--height 1080`.
+   - **Silent**: `uv run --with playwright tools/html2video.py docs/file.html docs/file.mp4`
+   - **Voice-over**: `uv run --with playwright --with edge-tts tools/html2video.py docs/file.html docs/file.mp4 --voice en-US-AriaNeural`
 
 3. **Verify output**:
    - Check the generated MP4 file.

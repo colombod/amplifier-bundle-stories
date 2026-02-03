@@ -58,6 +58,11 @@ Start with this structure:
             /* NO justify-content: center here! */
         }
 
+        /* Speaker notes for voice-over generation - hidden visually */
+        .notes {
+            display: none;
+        }
+
         .slide.active {
             display: flex;
         }
@@ -263,13 +268,27 @@ Before presenting to user:
 
 ## Video Generation (Optional)
 
-You can convert the HTML deck to an MP4 video using the `tools/html2video.py` tool. This is useful for social sharing or self-running displays.
+You can convert the HTML deck to an MP4 video using the `tools/html2video.py` tool. This supports optional AI voice-over.
 
 **Workflow:**
-1. Create and polish the HTML deck first.
-2. Run the conversion tool:
-   ```bash
-   uv run --with playwright tools/html2video.py docs/filename.html docs/filename.mp4 --duration 5
+1. **Create HTML deck** with optional speaker notes for narration:
+   ```html
+   <div class="slide">
+       <h1>Slide Title</h1>
+       <aside class="notes">
+           This text will be spoken by the AI voice-over.
+       </aside>
+   </div>
    ```
-3. Validate the MP4 output (timing, transitions).
-4. Commit the MP4 to `docs/` alongside the HTML.
+
+2. **Run conversion tool**:
+   ```bash
+   # Without voice-over (silent)
+   uv run --with playwright tools/html2video.py docs/deck.html docs/deck.mp4
+
+   # With voice-over (requires edge-tts)
+   uv run --with playwright --with edge-tts tools/html2video.py docs/deck.html docs/deck.mp4 --voice en-US-AriaNeural
+   ```
+
+3. **Validate output**: Check video timing and audio sync.
+4. **Deploy**: Commit .mp4 to `docs/`.
