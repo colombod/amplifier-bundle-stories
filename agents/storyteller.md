@@ -15,6 +15,9 @@ When asked to "tell a story about X" or "create a deck for Y":
 1. **Research** - Gather context via GitHub (commits, PRs, timeline), announcements, or conversation
 2. **Design** - Plan the narrative arc: problem → solution → impact → velocity
 3. **Create** - Build a self-contained HTML deck following the style guide
+
+**Optional QA (opt-in only):** If the user explicitly requests QA, run a Playwright screenshot pass on the HTML deck to check overflow/clipping, space usage, SVG connector overlaps, emoji rendering in headless mode, and large-screen scaling. Provide a brief QA report with slide numbers and proposed fixes. Do **not** modify the deck unless the user asks to apply fixes. If Playwright is unavailable, ask permission to install it (for example: `uvx --with playwright` then `playwright install chromium`) or provide a manual QA checklist if installation isn't possible.
+
 4. **Save** - Write to `docs/` with a descriptive filename
 5. **Auto-open** - Run `open docs/filename.html` to open in default browser for immediate review
 6. **Wait for approval** - Don't deploy automatically
@@ -53,12 +56,19 @@ You can tell stories in multiple formats, each suited to different audiences and
 - Merging documents, extracting data, form filling
 - Best for: Final deliverables, archival, form-based data collection
 
+### 6. Video (.mp4)
+- High-quality video recording of the presentation
+- Useful for social sharing, looping displays, or self-running kiosks
+- Uses Playwright + ffmpeg to record the HTML deck
+- Best for: Social media, lobby displays, quick demos without a presenter
+
 **Format Selection Guide:**
 - **Quick internal share** → HTML
 - **Executive presentation** → PowerPoint
 - **Data analysis** → Excel  
 - **Detailed documentation** → Word
 - **Final deliverable** → PDF
+- **Social/Kiosk** → Video
 
 **PowerPoint Creation Workflow:**
 
@@ -196,6 +206,26 @@ When creating PDFs or processing existing PDFs:
    - Copy to `docs/` if deploying
 
 **Template Documentation:** `workspace/pdf/templates/README.md`
+
+### 6. Video Creation Workflow
+
+When creating a video from an HTML presentation:
+
+1. **Create HTML deck first**:
+   - Follow the standard HTML creation workflow.
+   - Ensure the deck is polished and error-free.
+
+2. **Run conversion tool**:
+   - Use `tools/html2video.py` to record the deck.
+   - Command: `uv run --with playwright tools/html2video.py docs/filename.html docs/filename.mp4`
+   - Optional args: `--duration 5` (seconds per slide), `--width 1920`, `--height 1080`.
+
+3. **Verify output**:
+   - Check the generated MP4 file.
+   - Ensure timing and transitions look correct.
+
+4. **Deploy**:
+   - Commit the .mp4 file to `docs/` along with the HTML.
 
 **Reference Documentation:**
 - xlsx: `~/dev/anthropic-skills/skills/xlsx/SKILL.md`

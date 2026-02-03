@@ -245,6 +245,14 @@ Before presenting to user:
 - [ ] **Responsive: Grids collapse to single column on narrow screens**
 - [ ] **Responsive: Touch targets ≥44px for tappable elements**
 
+### Optional QA Enhancement (Opt-in Only)
+
+- Run a Playwright screenshot pass on the HTML deck only when explicitly requested.
+- If Playwright isn't available, ask permission to install it; if installation isn't possible, provide a manual QA checklist and note the limitation.
+- Check for overflow/clipping, space usage, SVG connector overlaps, emoji rendering in headless mode, and large-screen scaling.
+- Provide a brief QA report with slide numbers and proposed fixes.
+- Do not modify the deck unless the user asks to apply fixes.
+
 ## Deployment Workflow
 
 1. Create deck, save to `docs/`
@@ -252,3 +260,16 @@ Before presenting to user:
 3. Iterate based on feedback
 4. When approved: `./deploy.sh filename.html`
 5. Commit changes to git
+
+## Video Generation (Optional)
+
+You can convert the HTML deck to an MP4 video using the `tools/html2video.py` tool. This is useful for social sharing or self-running displays.
+
+**Workflow:**
+1. Create and polish the HTML deck first.
+2. Run the conversion tool:
+   ```bash
+   uv run --with playwright tools/html2video.py docs/filename.html docs/filename.mp4 --duration 5
+   ```
+3. Validate the MP4 output (timing, transitions).
+4. Commit the MP4 to `docs/` alongside the HTML.
